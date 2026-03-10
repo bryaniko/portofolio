@@ -469,6 +469,39 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* AR Prompt Button */
+        .ar-prompt-button {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-accent-emphasis);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+            z-index: 5;
+        }
+
+        .ar-prompt-button:hover {
+            background: #1a56db;
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+        }
+
+        .ar-prompt-button svg {
+            width: 20px;
+            height: 20px;
+        }
     </style>
 </head>
 <body>
@@ -523,12 +556,23 @@
                             id="modelViewer"
                             src="path/kacamata.glb" 
                             alt="Model 3D Kacamata" 
-                            auto-rotate 
+                            ar
+                            ar-modes="webxr scene-viewer quick-look"
+                            ar-scale="auto"
                             camera-controls
+                            auto-rotate 
                             shadow-intensity="1"
                             environment-image="neutral"
                             exposure="1"
-                            shadow-softness="0.5">
+                            shadow-softness="0.5"
+                            ios-src="path/kacamata.usdz">
+                            <!-- AR Prompt -->
+                            <button slot="ar-button" class="ar-prompt-button">
+                                <svg viewBox="0 0 24 24" width="24" height="24">
+                                    <path fill="white" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                                View in your space
+                            </button>
                         </model-viewer>
                     </div>
                 </div>
@@ -654,14 +698,16 @@
         });
 
         // Check AR support
-        if (modelViewer.canActivateAR) {
-            arSupport.textContent = 'Yes';
-            arSupport.style.color = 'var(--color-success-fg)';
-            arButton.disabled = false;
-        } else {
-            arSupport.textContent = 'No';
-            arSupport.style.color = 'var(--color-fg-muted)';
-        }
+        setTimeout(() => {
+            if (modelViewer.canActivateAR) {
+                arSupport.textContent = 'Yes';
+                arSupport.style.color = 'var(--color-success-fg)';
+                arButton.disabled = false;
+            } else {
+                arSupport.textContent = 'No';
+                arSupport.style.color = 'var(--color-fg-muted)';
+            }
+        }, 1000);
 
         // View controls
         function resetView() {
@@ -747,4 +793,4 @@
         });
     </script>
 </body>
-</html> 
+</html>
