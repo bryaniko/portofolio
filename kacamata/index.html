@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Viewer - Full Control</title>
+    <title>AR Viewer - Place & Lock</title>
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -24,6 +24,7 @@
             --color-accent-emphasis: #1f6feb;
             --color-success-fg: #3fb950;
             --color-danger-fg: #f85149;
+            --color-attention-fg: #d29922;
             --color-neutral-muted: rgba(110,118,129,0.4);
         }
 
@@ -88,7 +89,6 @@
             50% { opacity: 0.5; }
         }
 
-        /* Main Layout */
         main {
             padding: 24px 0;
         }
@@ -100,7 +100,6 @@
             min-height: calc(100vh - 200px);
         }
 
-        /* Model Viewer */
         .viewer-container {
             background: var(--color-canvas-subtle);
             border: 1px solid var(--color-border-default);
@@ -116,14 +115,14 @@
             --progress-bar-color: var(--color-accent-fg);
         }
 
-        /* AR Controls Overlay (shown in AR mode) */
+        /* AR Controls Overlay */
         .ar-controls-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(to top, rgba(13, 17, 23, 0.95), transparent);
-            padding: 100px 20px 20px;
+            background: linear-gradient(to top, rgba(13, 17, 23, 0.98), transparent);
+            padding: 120px 20px 20px;
             display: none;
             z-index: 10;
         }
@@ -132,6 +131,53 @@
             display: block;
         }
 
+        /* Place Button Section */
+        .ar-place-section {
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .ar-place-btn {
+            background: var(--color-accent-emphasis);
+            border: 2px solid var(--color-accent-fg);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(31, 111, 235, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ar-place-btn:active {
+            transform: scale(0.95);
+        }
+
+        .ar-place-btn.locked {
+            background: var(--color-success-fg);
+            border-color: var(--color-success-fg);
+            box-shadow: 0 4px 20px rgba(63, 185, 80, 0.6);
+        }
+
+        .ar-place-btn.locked:hover {
+            background: #2ea043;
+        }
+
+        .ar-place-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        /* Control Panel */
         .ar-control-panel {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -140,23 +186,28 @@
         }
 
         .ar-control-btn {
-            background: rgba(22, 27, 34, 0.9);
+            background: rgba(22, 27, 34, 0.95);
             border: 1px solid var(--color-border-default);
             color: var(--color-fg-default);
-            padding: 16px;
+            padding: 16px 8px;
             border-radius: 8px;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             font-size: 11px;
             text-align: center;
             backdrop-filter: blur(10px);
             transition: all 0.2s ease;
         }
 
-        .ar-control-btn:active {
+        .ar-control-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .ar-control-btn:not(:disabled):active {
             transform: scale(0.95);
             background: var(--color-accent-emphasis);
         }
@@ -167,7 +218,27 @@
             fill: var(--color-fg-default);
         }
 
-        /* Controls Panel */
+        /* Status Indicator in AR */
+        .ar-status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(22, 27, 34, 0.95);
+            border: 1px solid var(--color-border-default);
+            border-radius: 8px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+            color: var(--color-fg-muted);
+        }
+
+        .ar-status-indicator.placed {
+            border-color: var(--color-success-fg);
+            color: var(--color-success-fg);
+        }
+
+        /* Controls Panel (sidebar) */
         .controls-panel {
             display: flex;
             flex-direction: column;
@@ -195,12 +266,6 @@
             gap: 8px;
         }
 
-        .control-header svg {
-            width: 14px;
-            height: 14px;
-            fill: var(--color-fg-muted);
-        }
-
         .control-btn {
             width: 100%;
             background: var(--color-canvas-default);
@@ -221,13 +286,6 @@
 
         .control-btn:hover {
             background: var(--color-neutral-muted);
-            border-color: var(--color-fg-muted);
-        }
-
-        .control-btn.active {
-            background: var(--color-accent-emphasis);
-            border-color: var(--color-accent-emphasis);
-            color: white;
         }
 
         .control-btn svg {
@@ -242,7 +300,6 @@
             gap: 8px;
         }
 
-        /* Slider Control */
         .slider-control {
             margin-top: 12px;
         }
@@ -258,7 +315,6 @@
         .slider-value {
             color: var(--color-accent-fg);
             font-weight: 600;
-            font-family: 'SF Mono', Monaco, monospace;
         }
 
         input[type="range"] {
@@ -278,23 +334,8 @@
             background: var(--color-accent-fg);
             border-radius: 50%;
             cursor: pointer;
-            transition: all 0.2s ease;
         }
 
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-        }
-
-        input[type="range"]::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            background: var(--color-accent-fg);
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
-        }
-
-        /* Info Badge */
         .info-badge {
             display: inline-flex;
             align-items: center;
@@ -312,7 +353,6 @@
             color: var(--color-success-fg);
         }
 
-        /* Instruction Panel */
         .instruction-panel {
             background: linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(31, 111, 235, 0.05));
             border: 1px solid var(--color-border-default);
@@ -346,22 +386,6 @@
             color: var(--color-accent-fg);
         }
 
-        /* Responsive */
-        @media (max-width: 968px) {
-            .viewer-layout {
-                grid-template-columns: 1fr;
-            }
-
-            model-viewer {
-                height: 500px;
-            }
-
-            .ar-control-panel {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        /* Custom AR Button */
         .ar-button-custom {
             position: absolute;
             bottom: 20px;
@@ -386,7 +410,6 @@
         .ar-button-custom:hover {
             background: #1a56db;
             transform: translateX(-50%) translateY(-2px);
-            box-shadow: 0 6px 20px rgba(31, 111, 235, 0.5);
         }
 
         .ar-button-custom svg {
@@ -395,28 +418,18 @@
             fill: white;
         }
 
-        /* Keyboard shortcuts hint */
-        .shortcuts-hint {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--color-canvas-subtle);
-            border: 1px solid var(--color-border-default);
-            border-radius: 6px;
-            padding: 12px 16px;
-            font-size: 11px;
-            color: var(--color-fg-muted);
-            max-width: 200px;
-            z-index: 50;
-        }
+        @media (max-width: 968px) {
+            .viewer-layout {
+                grid-template-columns: 1fr;
+            }
 
-        .shortcuts-hint kbd {
-            background: var(--color-canvas-default);
-            padding: 2px 6px;
-            border-radius: 3px;
-            border: 1px solid var(--color-border-default);
-            font-family: monospace;
-            font-size: 10px;
+            model-viewer {
+                height: 500px;
+            }
+
+            .ar-control-panel {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
@@ -424,9 +437,9 @@
     <header>
         <div class="container">
             <div class="header-content">
-                <div class="logo">🥽 AR Viewer - Full Control</div>
+                <div class="logo">🥽 AR Viewer - Place & Lock</div>
                 <div class="status-indicator">
-                    <span class="status-dot" id="statusDot"></span>
+                    <span class="status-dot"></span>
                     <span id="statusText">Ready</span>
                 </div>
             </div>
@@ -450,11 +463,9 @@
                         auto-rotate
                         shadow-intensity="1"
                         environment-image="neutral"
-                        exposure="1"
-                        interaction-prompt="none">
+                        exposure="1">
                         
-                        <!-- Custom AR Button -->
-                        <button slot="ar-button" class="ar-button-custom" id="arButton">
+                        <button slot="ar-button" class="ar-button-custom">
                             <svg viewBox="0 0 24 24">
                                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                             </svg>
@@ -462,147 +473,77 @@
                         </button>
                     </model-viewer>
 
-                    <!-- AR Controls Overlay (shown when in AR) -->
+                    <!-- AR Controls Overlay -->
                     <div class="ar-controls-overlay" id="arControlsOverlay">
+                        <!-- Place/Lock Button -->
+                        <div class="ar-place-section">
+                            <button class="ar-place-btn" id="arPlaceBtn" onclick="toggleARPlacement()">
+                                <svg viewBox="0 0 24 24" id="placeBtnIcon">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                </svg>
+                                <span id="placeBtnText">Place Object</span>
+                            </button>
+                        </div>
+
+                        <!-- Control Panel -->
                         <div class="ar-control-panel">
-                            <button class="ar-control-btn" onclick="arRotateLeft()">
+                            <button class="ar-control-btn" onclick="arRotateLeft()" disabled id="btnRotateLeft">
                                 <svg viewBox="0 0 24 24"><path d="M7.11 8.53L5.7 7.11C4.8 8.27 4.24 9.61 4.07 11h2.02c.14-.87.49-1.72 1.02-2.47zM6.09 13H4.07c.17 1.39.72 2.73 1.62 3.89l1.41-1.42c-.52-.75-.87-1.59-1.01-2.47zm1.01 5.32c1.16.9 2.51 1.44 3.9 1.61V17.9c-.87-.15-1.71-.49-2.46-1.03L7.1 18.32zM13 4.07V1L8.45 5.55 13 10V6.09c2.84.48 5 2.94 5 5.91s-2.16 5.43-5 5.91v2.02c3.95-.49 7-3.85 7-7.93s-3.05-7.44-7-7.93z"/></svg>
                                 Putar Kiri
                             </button>
-                            <button class="ar-control-btn" onclick="arRotateRight()">
+                            <button class="ar-control-btn" onclick="arRotateRight()" disabled id="btnRotateRight">
                                 <svg viewBox="0 0 24 24"><path d="M15.55 5.55L11 1v3.07C7.06 4.56 4 7.92 4 12s3.05 7.44 7 7.93v-2.02c-2.84-.48-5-2.94-5-5.91s2.16-5.43 5-5.91V10l4.55-4.45zM19.93 11c-.17-1.39-.72-2.73-1.62-3.89l-1.42 1.42c.54.75.88 1.6 1.02 2.47h2.02zM13 17.9v2.02c1.39-.17 2.74-.71 3.9-1.61l-1.44-1.44c-.75.54-1.59.89-2.46 1.03zm3.89-2.42l1.42 1.41c.9-1.16 1.45-2.5 1.62-3.89h-2.02c-.14.87-.48 1.72-1.02 2.48z"/></svg>
                                 Putar Kanan
                             </button>
-                            <button class="ar-control-btn" onclick="arScaleUp()">
+                            <button class="ar-control-btn" onclick="arScaleUp()" disabled id="btnScaleUp">
                                 <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-8-2h2v-4h4v-2h-4V7h-2v4H7v2h4z"/></svg>
                                 Perbesar
                             </button>
-                            <button class="ar-control-btn" onclick="arScaleDown()">
+                            <button class="ar-control-btn" onclick="arScaleDown()" disabled id="btnScaleDown">
                                 <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 11h10v2H7z"/></svg>
                                 Perkecil
                             </button>
-                            <button class="ar-control-btn" onclick="arMoveUp()">
-                                <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
-                                Naik
+                            <button class="ar-control-btn" onclick="arReset()" disabled id="btnReset">
+                                <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+                                Reset
                             </button>
-                            <button class="ar-control-btn" onclick="arMoveDown()">
-                                <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
-                                Turun
+                            <button class="ar-control-btn" onclick="arUnlock()" disabled id="btnUnlock">
+                                <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>
+                                Unlock
                             </button>
+                        </div>
+
+                        <!-- Status Indicator -->
+                        <div class="ar-status-indicator" id="arStatusIndicator">
+                            <svg viewBox="0 0 24 24" width="16" height="16">
+                                <path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                            </svg>
+                            <span id="arStatusText">Tap screen to place object</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Controls Panel -->
                 <div class="controls-panel">
-                    <!-- AR Configuration -->
                     <div class="control-card">
-                        <div class="control-header">
-                            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8h16v10z"/></svg>
-                            AR Configuration
-                        </div>
-                        <button class="control-btn" onclick="toggleARMode()" id="arModeBtn">
+                        <div class="control-header">AR Configuration</div>
+                        <button class="control-btn" onclick="toggleARMode()">
                             <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
                             Aktifkan AR
                         </button>
-                        
-                        <div class="slider-control">
-                            <div class="slider-label">
-                                <span>AR Scale</span>
-                                <span class="slider-value" id="arScaleValue">1.0x</span>
-                            </div>
-                            <input type="range" id="arScale" min="0.5" max="3" step="0.1" value="1" oninput="updateARScale(this.value)">
-                        </div>
-
-                        <div style="margin-top: 12px;">
-                            <div class="slider-label">
-                                <span>Placement</span>
-                            </div>
-                            <div class="control-grid">
-                                <button class="control-btn" onclick="setARPlacement('floor')" id="placementFloor">
-                                    Floor
-                                </button>
-                                <button class="control-btn" onclick="setARPlacement('wall')" id="placementWall">
-                                    Wall
-                                </button>
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- Model Rotation -->
-                    <div class="control-card">
-                        <div class="control-header">
-                            <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
-                            Manual Rotation
-                        </div>
-                        <div class="slider-control">
-                            <div class="slider-label">
-                                <span>Rotate Y</span>
-                                <span class="slider-value" id="rotateYValue">0°</span>
-                            </div>
-                            <input type="range" id="rotateY" min="0" max="360" step="5" value="0" oninput="updateRotation(this.value)">
-                        </div>
-                        <div class="control-grid" style="margin-top: 12px;">
-                            <button class="control-btn" onclick="rotateModel(-45)">← 45°</button>
-                            <button class="control-btn" onclick="rotateModel(45)">45° →</button>
-                            <button class="control-btn" onclick="resetRotation()">Reset</button>
-                            <button class="control-btn" onclick="toggleAutoRotate()" id="autoRotateBtn">
-                                Pause
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Camera Views -->
-                    <div class="control-card">
-                        <div class="control-header">
-                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-                            Camera Views
-                        </div>
-                        <div class="control-grid">
-                            <button class="control-btn" onclick="setCameraView('front')">Front</button>
-                            <button class="control-btn" onclick="setCameraView('back')">Back</button>
-                            <button class="control-btn" onclick="setCameraView('left')">Left</button>
-                            <button class="control-btn" onclick="setCameraView('right')">Right</button>
-                            <button class="control-btn" onclick="setCameraView('top')">Top</button>
-                            <button class="control-btn" onclick="setCameraView('reset')">Reset</button>
-                        </div>
-                    </div>
-
-                    <!-- Lighting -->
-                    <div class="control-card">
-                        <div class="control-header">
-                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-                            Lighting
-                        </div>
-                        <div class="slider-control">
-                            <div class="slider-label">
-                                <span>Exposure</span>
-                                <span class="slider-value" id="exposureValue">1.0</span>
-                            </div>
-                            <input type="range" id="exposure" min="0.5" max="2" step="0.1" value="1" oninput="updateExposure(this.value)">
-                        </div>
-                        <div class="slider-control">
-                            <div class="slider-label">
-                                <span>Shadow</span>
-                                <span class="slider-value" id="shadowValue">1.0</span>
-                            </div>
-                            <input type="range" id="shadow" min="0" max="2" step="0.1" value="1" oninput="updateShadow(this.value)">
-                        </div>
-                    </div>
-
-                    <!-- AR Instructions -->
                     <div class="instruction-panel">
-                        <h4>📱 AR Controls</h4>
+                        <h4>📱 Cara Gunakan Place & Lock</h4>
                         <ul>
                             <li>Tap "Aktifkan AR" untuk masuk AR mode</li>
                             <li>Arahkan kamera ke permukaan datar</li>
-                            <li>Gunakan tombol overlay untuk kontrol</li>
-                            <li>Pinch untuk zoom, drag untuk rotate</li>
-                            <li>Tap objek untuk reposition</li>
+                            <li>Tap "Place Object" untuk fix posisi</li>
+                            <li>Setelah di-place, gunakan kontrol rotate/scale</li>
+                            <li>Tap "Unlock" untuk reposition object</li>
                         </ul>
                     </div>
 
-                    <!-- Status Info -->
                     <div class="control-card">
                         <div class="control-header">Status</div>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -610,10 +551,7 @@
                                 <svg viewBox="0 0 16 16" width="12" height="12"><path fill="currentColor" d="M8 0a8 8 0 110 16A8 8 0 018 0zM6.78 10.53L5.22 8.97l-1.06 1.06 2.62 2.62 5.66-5.66-1.06-1.06-4.6 4.6z"/></svg>
                                 Model Ready
                             </div>
-                            <div class="info-badge" id="arSupportBadge">
-                                <svg viewBox="0 0 16 16" width="12" height="12"><path fill="currentColor" d="M8 0a8 8 0 110 16A8 8 0 018 0zM6.5 5a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm3 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM8 11.5a3 3 0 01-2.5-1.35l-.5.87A4 4 0 008 13a4 4 0 002.5-1.35l-.5-.87A3 3 0 018 11.5z"/></svg>
-                                Checking AR...
-                            </div>
+                            <div class="info-badge" id="arSupportBadge">Checking AR...</div>
                         </div>
                     </div>
                 </div>
@@ -621,43 +559,37 @@
         </div>
     </main>
 
-    <!-- Keyboard Shortcuts Hint -->
-    <div class="shortcuts-hint">
-        <strong>Shortcuts:</strong><br>
-        <kbd>R</kbd> Reset view<br>
-        <kbd>Space</kbd> Toggle rotation<br>
-        <kbd>←/→</kbd> Rotate<br>
-        <kbd>A</kbd> Activate AR
-    </div>
-
     <script>
         const modelViewer = document.getElementById('modelViewer');
         const arControlsOverlay = document.getElementById('arControlsOverlay');
-        let currentRotation = 0;
-        let autoRotating = true;
-        let currentARScale = 1.0;
-        let arPlacement = 'floor';
         let isInAR = false;
+        let isPlaced = false;
+        let currentRotation = 0;
+        let currentScale = 1.0;
+        let savedPosition = null;
 
-        // Model loaded
-        modelViewer.addEventListener('load', () => {
-            console.log('Model loaded successfully');
-            updateARSupport();
-        });
-
-        // AR session started
+        // AR session events
         modelViewer.addEventListener('ar-status', (event) => {
             if (event.detail.status === 'session-started') {
                 isInAR = true;
+                isPlaced = false;
                 arControlsOverlay.classList.add('active');
                 document.getElementById('statusText').textContent = 'AR Active';
+                updatePlaceButton();
+                updateControlButtons();
                 console.log('AR session started');
             } else if (event.detail.status === 'not-presenting') {
                 isInAR = false;
+                isPlaced = false;
                 arControlsOverlay.classList.remove('active');
                 document.getElementById('statusText').textContent = 'Ready';
                 console.log('AR session ended');
             }
+        });
+
+        // Model loaded
+        modelViewer.addEventListener('load', () => {
+            updateARSupport();
         });
 
         // Check AR Support
@@ -676,167 +608,104 @@
             if (modelViewer.canActivateAR) {
                 modelViewer.activateAR();
             } else {
-                alert('AR tidak didukung di perangkat ini. Gunakan Chrome (Android ARCore) atau Safari (iOS).');
+                alert('AR tidak didukung. Gunakan Chrome (Android ARCore) atau Safari (iOS).');
             }
         }
 
-        // AR Controls
-        function arRotateLeft() {
+        // Toggle Placement (Place/Lock)
+        function toggleARPlacement() {
             if (!isInAR) return;
+            
+            isPlaced = !isPlaced;
+            updatePlaceButton();
+            updateControlButtons();
+            
+            if (isPlaced) {
+                // Save current position
+                savedPosition = {
+                    orbit: modelViewer.getCameraOrbit(),
+                    scale: currentScale,
+                    rotation: currentRotation
+                };
+                console.log('Object placed and locked at position');
+            } else {
+                console.log('Object unlocked - can reposition');
+            }
+        }
+
+        // Update Place Button UI
+        function updatePlaceButton() {
+            const btn = document.getElementById('arPlaceBtn');
+            const icon = document.getElementById('placeBtnIcon');
+            const text = document.getElementById('placeBtnText');
+            const statusIndicator = document.getElementById('arStatusIndicator');
+            const statusText = document.getElementById('arStatusText');
+            
+            if (isPlaced) {
+                btn.classList.add('locked');
+                text.textContent = 'Object Locked';
+                icon.innerHTML = '<path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>';
+                statusIndicator.classList.add('placed');
+                statusText.textContent = '✓ Object placed - Use controls to adjust';
+            } else {
+                btn.classList.remove('locked');
+                text.textContent = 'Place Object';
+                icon.innerHTML = '<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>';
+                statusIndicator.classList.remove('placed');
+                statusText.textContent = 'Tap screen to place object';
+            }
+        }
+
+        // Update Control Buttons State
+        function updateControlButtons() {
+            const buttons = ['btnRotateLeft', 'btnRotateRight', 'btnScaleUp', 'btnScaleDown', 'btnReset', 'btnUnlock'];
+            buttons.forEach(id => {
+                document.getElementById(id).disabled = !isPlaced;
+            });
+        }
+
+        // AR Control Functions
+        function arRotateLeft() {
+            if (!isInAR || !isPlaced) return;
             currentRotation -= 45;
             modelViewer.cameraOrbit = `${currentRotation}deg 75deg 105%`;
         }
 
         function arRotateRight() {
-            if (!isInAR) return;
+            if (!isInAR || !isPlaced) return;
             currentRotation += 45;
             modelViewer.cameraOrbit = `${currentRotation}deg 75deg 105%`;
         }
 
         function arScaleUp() {
-            if (!isInAR) return;
-            currentARScale += 0.2;
-            modelViewer.scale = `${currentARScale} ${currentARScale} ${currentARScale}`;
-            document.getElementById('arScaleValue').textContent = currentARScale.toFixed(1) + 'x';
+            if (!isInAR || !isPlaced) return;
+            currentScale = Math.min(3.0, currentScale + 0.2);
+            modelViewer.scale = `${currentScale} ${currentScale} ${currentScale}`;
         }
 
         function arScaleDown() {
-            if (!isInAR) return;
-            currentARScale = Math.max(0.2, currentARScale - 0.2);
-            modelViewer.scale = `${currentARScale} ${currentARScale} ${currentARScale}`;
-            document.getElementById('arScaleValue').textContent = currentARScale.toFixed(1) + 'x';
+            if (!isInAR || !isPlaced) return;
+            currentScale = Math.max(0.2, currentScale - 0.2);
+            modelViewer.scale = `${currentScale} ${currentScale} ${currentScale}`;
         }
 
-        function arMoveUp() {
-            // This would require custom WebXR implementation
-            console.log('Move up in AR');
-        }
-
-        function arMoveDown() {
-            // This would require custom WebXR implementation
-            console.log('Move down in AR');
-        }
-
-        // AR Scale Control
-        function updateARScale(value) {
-            currentARScale = parseFloat(value);
-            document.getElementById('arScaleValue').textContent = value + 'x';
-            if (isInAR) {
-                modelViewer.scale = `${value} ${value} ${value}`;
-            }
-        }
-
-        // AR Placement
-        function setARPlacement(placement) {
-            arPlacement = placement;
-            modelViewer.setAttribute('ar-placement', placement);
-            
-            // Update button states
-            document.getElementById('placementFloor').classList.remove('active');
-            document.getElementById('placementWall').classList.remove('active');
-            document.getElementById(`placement${placement.charAt(0).toUpperCase() + placement.slice(1)}`).classList.add('active');
-        }
-
-        // Rotation Controls
-        function updateRotation(value) {
-            currentRotation = parseInt(value);
-            document.getElementById('rotateYValue').textContent = value + '°';
-            modelViewer.cameraOrbit = `${value}deg 75deg 105%`;
-        }
-
-        function rotateModel(degrees) {
-            currentRotation += degrees;
-            if (currentRotation >= 360) currentRotation -= 360;
-            if (currentRotation < 0) currentRotation += 360;
-            document.getElementById('rotateY').value = currentRotation;
-            document.getElementById('rotateYValue').textContent = currentRotation + '°';
-            modelViewer.cameraOrbit = `${currentRotation}deg 75deg 105%`;
-        }
-
-        function resetRotation() {
+        function arReset() {
+            if (!isInAR || !isPlaced) return;
             currentRotation = 0;
-            document.getElementById('rotateY').value = 0;
-            document.getElementById('rotateYValue').textContent = '0°';
+            currentScale = 1.0;
             modelViewer.cameraOrbit = '0deg 75deg 105%';
+            modelViewer.scale = '1 1 1';
         }
 
-        function toggleAutoRotate() {
-            const btn = document.getElementById('autoRotateBtn');
-            if (autoRotating) {
-                modelViewer.removeAttribute('auto-rotate');
-                btn.textContent = 'Play';
-                autoRotating = false;
-            } else {
-                modelViewer.setAttribute('auto-rotate', '');
-                btn.textContent = 'Pause';
-                autoRotating = true;
-            }
+        function arUnlock() {
+            if (!isInAR || !isPlaced) return;
+            isPlaced = false;
+            updatePlaceButton();
+            updateControlButtons();
         }
-
-        // Camera Views
-        function setCameraView(view) {
-            const views = {
-                front: '0deg 90deg 105%',
-                back: '180deg 90deg 105%',
-                left: '270deg 90deg 105%',
-                right: '90deg 90deg 105%',
-                top: '0deg 0deg 105%',
-                reset: '0deg 75deg 105%'
-            };
-            
-            if (views[view]) {
-                modelViewer.cameraOrbit = views[view];
-                if (view !== 'reset') {
-                    const angle = views[view].split('deg')[0];
-                    currentRotation = parseInt(angle);
-                    document.getElementById('rotateY').value = currentRotation;
-                    document.getElementById('rotateYValue').textContent = currentRotation + '°';
-                }
-            }
-        }
-
-        // Lighting Controls
-        function updateExposure(value) {
-            modelViewer.exposure = value;
-            document.getElementById('exposureValue').textContent = parseFloat(value).toFixed(1);
-        }
-
-        function updateShadow(value) {
-            modelViewer.shadowIntensity = value;
-            document.getElementById('shadowValue').textContent = parseFloat(value).toFixed(1);
-        }
-
-        // Keyboard Shortcuts
-        document.addEventListener('keydown', (e) => {
-            switch(e.key.toLowerCase()) {
-                case 'r':
-                    resetRotation();
-                    setCameraView('reset');
-                    break;
-                case ' ':
-                    e.preventDefault();
-                    toggleAutoRotate();
-                    break;
-                case 'arrowleft':
-                    e.preventDefault();
-                    rotateModel(-15);
-                    break;
-                case 'arrowright':
-                    e.preventDefault();
-                    rotateModel(15);
-                    break;
-                case 'a':
-                    if (e.ctrlKey || e.metaKey) return;
-                    toggleARMode();
-                    break;
-            }
-        });
 
         // Initialize
-        setTimeout(() => {
-            setARPlacement('floor');
-            updateARSupport();
-        }, 1000);
+        setTimeout(updateARSupport, 1000);
     </script>
 </body>
 </html>
