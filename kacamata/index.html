@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Model Viewer - Kacamata</title>
+    <title>AR Viewer - Full Control</title>
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -14,20 +14,16 @@
         }
 
         :root {
-            /* GitHub Dark Theme Colors */
             --color-canvas-default: #0d1117;
             --color-canvas-subtle: #161b22;
-            --color-canvas-inset: #010409;
             --color-border-default: #30363d;
             --color-border-muted: #21262d;
             --color-fg-default: #c9d1d9;
             --color-fg-muted: #8b949e;
-            --color-fg-subtle: #6e7681;
             --color-accent-fg: #58a6ff;
             --color-accent-emphasis: #1f6feb;
             --color-success-fg: #3fb950;
             --color-danger-fg: #f85149;
-            --color-attention-fg: #d29922;
             --color-neutral-muted: rgba(110,118,129,0.4);
         }
 
@@ -37,28 +33,12 @@
             color: var(--color-fg-default);
             line-height: 1.5;
             font-size: 14px;
-            min-height: 100vh;
         }
 
-        /* Animations */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
         }
 
         /* Header */
@@ -70,13 +50,6 @@
             top: 0;
             z-index: 100;
             backdrop-filter: blur(8px);
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .container {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 32px;
         }
 
         .header-content {
@@ -86,130 +59,27 @@
         }
 
         .logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            color: var(--color-fg-default);
             font-weight: 600;
             font-size: 16px;
-        }
-
-        .logo svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--color-fg-muted);
-        }
-
-        .header-nav {
-            display: flex;
-            gap: 16px;
-            list-style: none;
-        }
-
-        .header-nav a {
             color: var(--color-fg-default);
-            text-decoration: none;
-            font-weight: 600;
-            padding: 8px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
         }
 
-        .header-nav a:hover {
-            background-color: var(--color-neutral-muted);
-            color: var(--color-accent-fg);
-        }
-
-        /* Main Content */
-        main {
-            padding: 32px 0;
-            animation: fadeInUp 0.6s ease-out 0.2s both;
-        }
-
-        .page-header {
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--color-border-default);
-        }
-
-        .page-title {
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--color-fg-default);
-            margin-bottom: 8px;
-        }
-
-        .page-description {
-            font-size: 14px;
-            color: var(--color-fg-muted);
-        }
-
-        /* Layout Grid */
-        .viewer-layout {
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 24px;
-        }
-
-        /* Model Viewer Card */
-        .viewer-card {
-            background-color: var(--color-canvas-subtle);
-            border: 1px solid var(--color-border-default);
-            border-radius: 6px;
-            overflow: hidden;
-            transition: all 0.2s ease;
-        }
-
-        .viewer-card:hover {
-            border-color: var(--color-border-muted);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-        }
-
-        .card-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--color-border-default);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .card-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--color-fg-default);
+        .status-indicator {
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-
-        .card-title svg {
-            width: 16px;
-            height: 16px;
-            fill: var(--color-fg-muted);
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 2px 8px;
-            border-radius: 12px;
+            padding: 6px 12px;
+            background: var(--color-canvas-default);
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
             font-size: 12px;
-            font-weight: 500;
-            background-color: var(--color-success-fg);
-            color: var(--color-canvas-default);
-        }
-
-        .status-badge.loading {
-            background-color: var(--color-attention-fg);
         }
 
         .status-dot {
-            width: 6px;
-            height: 6px;
-            background-color: currentColor;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
+            background: var(--color-success-fg);
             animation: pulse 2s ease-in-out infinite;
         }
 
@@ -218,17 +88,83 @@
             50% { opacity: 0.5; }
         }
 
-        .card-body {
-            padding: 0;
+        /* Main Layout */
+        main {
+            padding: 24px 0;
+        }
+
+        .viewer-layout {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 24px;
+            min-height: calc(100vh - 200px);
+        }
+
+        /* Model Viewer */
+        .viewer-container {
+            background: var(--color-canvas-subtle);
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            overflow: hidden;
             position: relative;
-            background-color: var(--color-canvas-inset);
         }
 
         model-viewer {
             width: 100%;
-            height: 600px;
-            background: transparent;
+            height: 700px;
+            background: var(--color-canvas-default);
             --progress-bar-color: var(--color-accent-fg);
+        }
+
+        /* AR Controls Overlay (shown in AR mode) */
+        .ar-controls-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(13, 17, 23, 0.95), transparent);
+            padding: 100px 20px 20px;
+            display: none;
+            z-index: 10;
+        }
+
+        .ar-controls-overlay.active {
+            display: block;
+        }
+
+        .ar-control-panel {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .ar-control-btn {
+            background: rgba(22, 27, 34, 0.9);
+            border: 1px solid var(--color-border-default);
+            color: var(--color-fg-default);
+            padding: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .ar-control-btn:active {
+            transform: scale(0.95);
+            background: var(--color-accent-emphasis);
+        }
+
+        .ar-control-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--color-fg-default);
         }
 
         /* Controls Panel */
@@ -236,10 +172,12 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
         }
 
         .control-card {
-            background-color: var(--color-canvas-subtle);
+            background: var(--color-canvas-subtle);
             border: 1px solid var(--color-border-default);
             border-radius: 6px;
             padding: 16px;
@@ -252,60 +190,61 @@
             letter-spacing: 0.5px;
             color: var(--color-fg-muted);
             margin-bottom: 12px;
-        }
-
-        .control-group {
-            display: grid;
-            gap: 8px;
-        }
-
-        .control-btn {
-            background-color: var(--color-canvas-default);
-            border: 1px solid var(--color-border-default);
-            color: var(--color-fg-default);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .control-btn svg {
+        .control-header svg {
             width: 14px;
             height: 14px;
             fill: var(--color-fg-muted);
         }
 
+        .control-btn {
+            width: 100%;
+            background: var(--color-canvas-default);
+            border: 1px solid var(--color-border-default);
+            color: var(--color-fg-default);
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
         .control-btn:hover {
-            background-color: var(--color-neutral-muted);
+            background: var(--color-neutral-muted);
             border-color: var(--color-fg-muted);
         }
 
-        .control-btn:active {
-            transform: scale(0.98);
-        }
-
-        .control-btn.primary {
-            background-color: var(--color-accent-emphasis);
+        .control-btn.active {
+            background: var(--color-accent-emphasis);
             border-color: var(--color-accent-emphasis);
             color: white;
         }
 
-        .control-btn.primary:hover {
-            background-color: #1a56db;
+        .control-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
         }
 
-        .control-btn.primary svg {
-            fill: white;
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
         }
 
         /* Slider Control */
-        .slider-group {
-            margin-top: 8px;
+        .slider-control {
+            margin-top: 12px;
         }
 
         .slider-label {
@@ -317,8 +256,8 @@
         }
 
         .slider-value {
-            color: var(--color-fg-default);
-            font-weight: 500;
+            color: var(--color-accent-fg);
+            font-weight: 600;
             font-family: 'SF Mono', Monaco, monospace;
         }
 
@@ -334,8 +273,8 @@
 
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             background: var(--color-accent-fg);
             border-radius: 50%;
             cursor: pointer;
@@ -347,69 +286,64 @@
         }
 
         input[type="range"]::-moz-range-thumb {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             background: var(--color-accent-fg);
             border-radius: 50%;
             cursor: pointer;
             border: none;
         }
 
-        /* Info List */
-        .info-list {
-            list-style: none;
-        }
-
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            font-size: 13px;
-            border-bottom: 1px solid var(--color-border-muted);
-        }
-
-        .info-item:last-child {
-            border-bottom: none;
-        }
-
-        .info-label {
-            color: var(--color-fg-muted);
-        }
-
-        .info-value {
-            color: var(--color-fg-default);
-            font-weight: 500;
-            font-family: 'SF Mono', Monaco, monospace;
-        }
-
-        /* Footer */
-        footer {
-            border-top: 1px solid var(--color-border-default);
-            padding: 24px 0;
-            margin-top: 40px;
-        }
-
-        .footer-content {
-            display: flex;
-            justify-content: space-between;
+        /* Info Badge */
+        .info-badge {
+            display: inline-flex;
             align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--color-canvas-default);
+            border: 1px solid var(--color-border-default);
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .info-badge.success {
+            border-color: var(--color-success-fg);
+            color: var(--color-success-fg);
+        }
+
+        /* Instruction Panel */
+        .instruction-panel {
+            background: linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(31, 111, 235, 0.05));
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            padding: 12px;
             font-size: 12px;
-            color: var(--color-fg-muted);
+            line-height: 1.6;
         }
 
-        .footer-links {
-            display: flex;
-            gap: 16px;
-        }
-
-        .footer-links a {
+        .instruction-panel h4 {
+            font-size: 13px;
+            margin-bottom: 8px;
             color: var(--color-accent-fg);
-            text-decoration: none;
-            transition: color 0.2s ease;
         }
 
-        .footer-links a:hover {
-            color: var(--color-fg-default);
+        .instruction-panel ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .instruction-panel li {
+            padding: 4px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .instruction-panel li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--color-accent-fg);
         }
 
         /* Responsive */
@@ -421,333 +355,447 @@
             model-viewer {
                 height: 500px;
             }
-        }
 
-        @media (max-width: 640px) {
-            .container {
-                padding: 0 16px;
-            }
-
-            model-viewer {
-                height: 400px;
-            }
-
-            .page-title {
-                font-size: 20px;
+            .ar-control-panel {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
-        /* Loading State */
-        .loading-overlay {
+        /* Custom AR Button */
+        .ar-button-custom {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--color-canvas-inset);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            transition: opacity 0.3s ease;
-        }
-
-        .loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .spinner {
-            width: 32px;
-            height: 32px;
-            border: 3px solid var(--color-border-default);
-            border-top-color: var(--color-accent-fg);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* AR Prompt Button */
-        .ar-prompt-button {
-            position: absolute;
-            bottom: 16px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             background: var(--color-accent-emphasis);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
+            padding: 14px 28px;
+            border-radius: 8px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            gap: 10px;
+            box-shadow: 0 4px 16px rgba(31, 111, 235, 0.4);
             transition: all 0.2s ease;
             z-index: 5;
         }
 
-        .ar-prompt-button:hover {
+        .ar-button-custom:hover {
             background: #1a56db;
             transform: translateX(-50%) translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+            box-shadow: 0 6px 20px rgba(31, 111, 235, 0.5);
         }
 
-        .ar-prompt-button svg {
+        .ar-button-custom svg {
             width: 20px;
             height: 20px;
+            fill: white;
+        }
+
+        /* Keyboard shortcuts hint */
+        .shortcuts-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--color-canvas-subtle);
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-size: 11px;
+            color: var(--color-fg-muted);
+            max-width: 200px;
+            z-index: 50;
+        }
+
+        .shortcuts-hint kbd {
+            background: var(--color-canvas-default);
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--color-border-default);
+            font-family: monospace;
+            font-size: 10px;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
     <header>
         <div class="container">
             <div class="header-content">
-                <a href="#" class="logo">
-                    <span>3D Viewer</span>
-                </a>
-                <nav>
-                    <ul class="header-nav">
-                        <li><a href="#viewer">Viewer</a></li>
-                        <li><a href="#controls">Controls</a></li>
-                        <li><a href="#info">Info</a></li>
-                    </ul>
-                </nav>
+                <div class="logo">🥽 AR Viewer - Full Control</div>
+                <div class="status-indicator">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText">Ready</span>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Content -->
     <main>
         <div class="container">
-            <!-- Page Header -->
-            <div class="page-header">
-                <h1 class="page-title">Model 3D - Kacamata</h1>
-                <p class="page-description">Interactive 3D model viewer dengan kontrol lengkap</p>
-            </div>
-
-            <!-- Viewer Layout -->
             <div class="viewer-layout">
                 <!-- Model Viewer -->
-                <div class="viewer-card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <svg viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0zM8 0a8 8 0 100 16A8 8 0 008 0zm.5 4.75a.75.75 0 00-1.5 0v3.5a.75.75 0 00.471.696l2.5 1a.75.75 0 00.557-1.392L8.5 7.742V4.75z"></path>
+                <div class="viewer-container">
+                    <model-viewer 
+                        id="modelViewer"
+                        src="path/kacamata.glb"
+                        ios-src="path/kacamata.usdz"
+                        alt="Kacamata 3D Model"
+                        ar
+                        ar-modes="webxr scene-viewer quick-look"
+                        ar-scale="auto"
+                        camera-controls
+                        auto-rotate
+                        shadow-intensity="1"
+                        environment-image="neutral"
+                        exposure="1"
+                        interaction-prompt="none">
+                        
+                        <!-- Custom AR Button -->
+                        <button slot="ar-button" class="ar-button-custom" id="arButton">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                             </svg>
-                            3D Model
-                        </div>
-                        <span class="status-badge loading" id="statusBadge">
-                            <span class="status-dot"></span>
-                            Loading
-                        </span>
-                    </div>
-                    <div class="card-body">
-                        <div class="loading-overlay" id="loadingOverlay">
-                            <div class="spinner"></div>
-                        </div>
-                        <model-viewer 
-                            id="modelViewer"
-                            src="path/kacamata.glb" 
-                            alt="Model 3D Kacamata" 
-                            ar
-                            ar-modes="webxr scene-viewer quick-look"
-                            ar-scale="auto"
-                            camera-controls
-                            auto-rotate 
-                            shadow-intensity="1"
-                            environment-image="neutral"
-                            exposure="1"
-                            shadow-softness="0.5"
-                            ios-src="path/kacamata.usdz">
-                            <!-- AR Prompt -->
-                            <button slot="ar-button" class="ar-prompt-button">
-                                <svg viewBox="0 0 24 24" width="24" height="24">
-                                    <path fill="white" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                                </svg>
-                                View in your space
+                            Aktifkan AR Mode
+                        </button>
+                    </model-viewer>
+
+                    <!-- AR Controls Overlay (shown when in AR) -->
+                    <div class="ar-controls-overlay" id="arControlsOverlay">
+                        <div class="ar-control-panel">
+                            <button class="ar-control-btn" onclick="arRotateLeft()">
+                                <svg viewBox="0 0 24 24"><path d="M7.11 8.53L5.7 7.11C4.8 8.27 4.24 9.61 4.07 11h2.02c.14-.87.49-1.72 1.02-2.47zM6.09 13H4.07c.17 1.39.72 2.73 1.62 3.89l1.41-1.42c-.52-.75-.87-1.59-1.01-2.47zm1.01 5.32c1.16.9 2.51 1.44 3.9 1.61V17.9c-.87-.15-1.71-.49-2.46-1.03L7.1 18.32zM13 4.07V1L8.45 5.55 13 10V6.09c2.84.48 5 2.94 5 5.91s-2.16 5.43-5 5.91v2.02c3.95-.49 7-3.85 7-7.93s-3.05-7.44-7-7.93z"/></svg>
+                                Putar Kiri
                             </button>
-                        </model-viewer>
+                            <button class="ar-control-btn" onclick="arRotateRight()">
+                                <svg viewBox="0 0 24 24"><path d="M15.55 5.55L11 1v3.07C7.06 4.56 4 7.92 4 12s3.05 7.44 7 7.93v-2.02c-2.84-.48-5-2.94-5-5.91s2.16-5.43 5-5.91V10l4.55-4.45zM19.93 11c-.17-1.39-.72-2.73-1.62-3.89l-1.42 1.42c.54.75.88 1.6 1.02 2.47h2.02zM13 17.9v2.02c1.39-.17 2.74-.71 3.9-1.61l-1.44-1.44c-.75.54-1.59.89-2.46 1.03zm3.89-2.42l1.42 1.41c.9-1.16 1.45-2.5 1.62-3.89h-2.02c-.14.87-.48 1.72-1.02 2.48z"/></svg>
+                                Putar Kanan
+                            </button>
+                            <button class="ar-control-btn" onclick="arScaleUp()">
+                                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-8-2h2v-4h4v-2h-4V7h-2v4H7v2h4z"/></svg>
+                                Perbesar
+                            </button>
+                            <button class="ar-control-btn" onclick="arScaleDown()">
+                                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 11h10v2H7z"/></svg>
+                                Perkecil
+                            </button>
+                            <button class="ar-control-btn" onclick="arMoveUp()">
+                                <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+                                Naik
+                            </button>
+                            <button class="ar-control-btn" onclick="arMoveDown()">
+                                <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+                                Turun
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Controls Panel -->
                 <div class="controls-panel">
-                    <!-- View Controls -->
+                    <!-- AR Configuration -->
                     <div class="control-card">
-                        <div class="control-header">View Controls</div>
-                        <div class="control-group">
-                            <button class="control-btn" onclick="resetView()">
-                                <svg viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M8 2.5a5.487 5.487 0 00-4.131 1.869l1.204 1.204A.25.25 0 014.896 6H1.25A.25.25 0 011 5.75V2.104a.25.25 0 01.427-.177l1.38 1.38A7.001 7.001 0 0114.95 7.16a.75.75 0 11-1.49.178A5.501 5.501 0 008 2.5zM1.705 8.005a.75.75 0 01.834.656 5.501 5.501 0 009.592 2.97l-1.204-1.204a.25.25 0 01.177-.427h3.646a.25.25 0 01.25.25v3.646a.25.25 0 01-.427.177l-1.38-1.38A7.001 7.001 0 011.05 8.84a.75.75 0 01.656-.834z"></path>
-                                </svg>
-                                Reset View
-                            </button>
-                            <button class="control-btn" onclick="toggleRotation()" id="rotateBtn">
-                                <svg viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M8 2.5a5.487 5.487 0 00-4.131 1.869l1.204 1.204A.25.25 0 014.896 6H1.25A.25.25 0 011 5.75V2.104a.25.25 0 01.427-.177l1.38 1.38A7.001 7.001 0 0114.95 7.16a.75.75 0 11-1.49.178A5.501 5.501 0 008 2.5zM1.705 8.005a.75.75 0 01.834.656 5.501 5.501 0 009.592 2.97l-1.204-1.204a.25.25 0 01.177-.427h3.646a.25.25 0 01.25.25v3.646a.25.25 0 01-.427.177l-1.38-1.38A7.001 7.001 0 011.05 8.84a.75.75 0 01.656-.834z"></path>
-                                </svg>
-                                Pause Rotation
-                            </button>
+                        <div class="control-header">
+                            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8h16v10z"/></svg>
+                            AR Configuration
                         </div>
-                        <div class="control-group" style="grid-template-columns: 1fr 1fr; margin-top: 8px;">
-                            <button class="control-btn" onclick="frontView()">Front</button>
-                            <button class="control-btn" onclick="sideView()">Side</button>
+                        <button class="control-btn" onclick="toggleARMode()" id="arModeBtn">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                            Aktifkan AR
+                        </button>
+                        
+                        <div class="slider-control">
+                            <div class="slider-label">
+                                <span>AR Scale</span>
+                                <span class="slider-value" id="arScaleValue">1.0x</span>
+                            </div>
+                            <input type="range" id="arScale" min="0.5" max="3" step="0.1" value="1" oninput="updateARScale(this.value)">
+                        </div>
+
+                        <div style="margin-top: 12px;">
+                            <div class="slider-label">
+                                <span>Placement</span>
+                            </div>
+                            <div class="control-grid">
+                                <button class="control-btn" onclick="setARPlacement('floor')" id="placementFloor">
+                                    Floor
+                                </button>
+                                <button class="control-btn" onclick="setARPlacement('wall')" id="placementWall">
+                                    Wall
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Lighting Controls -->
+                    <!-- Model Rotation -->
                     <div class="control-card">
-                        <div class="control-header">Lighting</div>
-                        <div class="slider-group">
+                        <div class="control-header">
+                            <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                            Manual Rotation
+                        </div>
+                        <div class="slider-control">
+                            <div class="slider-label">
+                                <span>Rotate Y</span>
+                                <span class="slider-value" id="rotateYValue">0°</span>
+                            </div>
+                            <input type="range" id="rotateY" min="0" max="360" step="5" value="0" oninput="updateRotation(this.value)">
+                        </div>
+                        <div class="control-grid" style="margin-top: 12px;">
+                            <button class="control-btn" onclick="rotateModel(-45)">← 45°</button>
+                            <button class="control-btn" onclick="rotateModel(45)">45° →</button>
+                            <button class="control-btn" onclick="resetRotation()">Reset</button>
+                            <button class="control-btn" onclick="toggleAutoRotate()" id="autoRotateBtn">
+                                Pause
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Camera Views -->
+                    <div class="control-card">
+                        <div class="control-header">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                            Camera Views
+                        </div>
+                        <div class="control-grid">
+                            <button class="control-btn" onclick="setCameraView('front')">Front</button>
+                            <button class="control-btn" onclick="setCameraView('back')">Back</button>
+                            <button class="control-btn" onclick="setCameraView('left')">Left</button>
+                            <button class="control-btn" onclick="setCameraView('right')">Right</button>
+                            <button class="control-btn" onclick="setCameraView('top')">Top</button>
+                            <button class="control-btn" onclick="setCameraView('reset')">Reset</button>
+                        </div>
+                    </div>
+
+                    <!-- Lighting -->
+                    <div class="control-card">
+                        <div class="control-header">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                            Lighting
+                        </div>
+                        <div class="slider-control">
                             <div class="slider-label">
                                 <span>Exposure</span>
                                 <span class="slider-value" id="exposureValue">1.0</span>
                             </div>
                             <input type="range" id="exposure" min="0.5" max="2" step="0.1" value="1" oninput="updateExposure(this.value)">
                         </div>
-                        <div class="slider-group">
+                        <div class="slider-control">
                             <div class="slider-label">
-                                <span>Shadow Intensity</span>
+                                <span>Shadow</span>
                                 <span class="slider-value" id="shadowValue">1.0</span>
                             </div>
                             <input type="range" id="shadow" min="0" max="2" step="0.1" value="1" oninput="updateShadow(this.value)">
                         </div>
                     </div>
 
-                    <!-- Model Info -->
-                    <div class="control-card">
-                        <div class="control-header">Model Info</div>
-                        <ul class="info-list">
-                            <li class="info-item">
-                                <span class="info-label">Format</span>
-                                <span class="info-value">GLB</span>
-                            </li>
-                            <li class="info-item">
-                                <span class="info-label">Status</span>
-                                <span class="info-value" id="modelStatus">Loading...</span>
-                            </li>
-                            <li class="info-item">
-                                <span class="info-label">Controls</span>
-                                <span class="info-value">Enabled</span>
-                            </li>
-                            <li class="info-item">
-                                <span class="info-label">AR Support</span>
-                                <span class="info-value" id="arSupport">Checking...</span>
-                            </li>
+                    <!-- AR Instructions -->
+                    <div class="instruction-panel">
+                        <h4>📱 AR Controls</h4>
+                        <ul>
+                            <li>Tap "Aktifkan AR" untuk masuk AR mode</li>
+                            <li>Arahkan kamera ke permukaan datar</li>
+                            <li>Gunakan tombol overlay untuk kontrol</li>
+                            <li>Pinch untuk zoom, drag untuk rotate</li>
+                            <li>Tap objek untuk reposition</li>
                         </ul>
                     </div>
 
-                    <!-- AR Button -->
-                    <button class="control-btn primary" onclick="activateAR()" id="arButton" disabled>
-                        <svg viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0zM8 0a8 8 0 100 16A8 8 0 008 0zm3.78 9.72a.75.75 0 10-1.06-1.06L6.75 12.69l-1.97-1.97a.75.75 0 00-1.06 1.06l2.5 2.5a.75.75 0 001.06 0l4.5-4.56z"></path>
-                        </svg>
-                        View in AR
-                    </button>
+                    <!-- Status Info -->
+                    <div class="control-card">
+                        <div class="control-header">Status</div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div class="info-badge success">
+                                <svg viewBox="0 0 16 16" width="12" height="12"><path fill="currentColor" d="M8 0a8 8 0 110 16A8 8 0 018 0zM6.78 10.53L5.22 8.97l-1.06 1.06 2.62 2.62 5.66-5.66-1.06-1.06-4.6 4.6z"/></svg>
+                                Model Ready
+                            </div>
+                            <div class="info-badge" id="arSupportBadge">
+                                <svg viewBox="0 0 16 16" width="12" height="12"><path fill="currentColor" d="M8 0a8 8 0 110 16A8 8 0 018 0zM6.5 5a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm3 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM8 11.5a3 3 0 01-2.5-1.35l-.5.87A4 4 0 008 13a4 4 0 002.5-1.35l-.5-.87A3 3 0 018 11.5z"/></svg>
+                                Checking AR...
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div>© 2024 3D Viewer. All rights reserved.</div>
-                <div class="footer-links">
-                    <a href="#">Docs</a>
-                    <a href="#">Support</a>
-                    <a href="#">GitHub</a>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <!-- Keyboard Shortcuts Hint -->
+    <div class="shortcuts-hint">
+        <strong>Shortcuts:</strong><br>
+        <kbd>R</kbd> Reset view<br>
+        <kbd>Space</kbd> Toggle rotation<br>
+        <kbd>←/→</kbd> Rotate<br>
+        <kbd>A</kbd> Activate AR
+    </div>
 
     <script>
         const modelViewer = document.getElementById('modelViewer');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const statusBadge = document.getElementById('statusBadge');
-        const modelStatus = document.getElementById('modelStatus');
-        const arSupport = document.getElementById('arSupport');
-        const arButton = document.getElementById('arButton');
-        let isRotating = true;
+        const arControlsOverlay = document.getElementById('arControlsOverlay');
+        let currentRotation = 0;
+        let autoRotating = true;
+        let currentARScale = 1.0;
+        let arPlacement = 'floor';
+        let isInAR = false;
 
-        // Model loaded event
+        // Model loaded
         modelViewer.addEventListener('load', () => {
-            loadingOverlay.classList.add('hidden');
-            statusBadge.textContent = 'Ready';
-            statusBadge.classList.remove('loading');
-            modelStatus.textContent = 'Ready';
-            modelStatus.style.color = 'var(--color-success-fg)';
+            console.log('Model loaded successfully');
+            updateARSupport();
         });
 
-        // Model error event
-        modelViewer.addEventListener('error', () => {
-            loadingOverlay.classList.add('hidden');
-            statusBadge.textContent = 'Error';
-            statusBadge.style.backgroundColor = 'var(--color-danger-fg)';
-            modelStatus.textContent = 'Error';
-            modelStatus.style.color = 'var(--color-danger-fg)';
-        });
-
-        // Check AR support
-        setTimeout(() => {
-            if (modelViewer.canActivateAR) {
-                arSupport.textContent = 'Yes';
-                arSupport.style.color = 'var(--color-success-fg)';
-                arButton.disabled = false;
-            } else {
-                arSupport.textContent = 'No';
-                arSupport.style.color = 'var(--color-fg-muted)';
+        // AR session started
+        modelViewer.addEventListener('ar-status', (event) => {
+            if (event.detail.status === 'session-started') {
+                isInAR = true;
+                arControlsOverlay.classList.add('active');
+                document.getElementById('statusText').textContent = 'AR Active';
+                console.log('AR session started');
+            } else if (event.detail.status === 'not-presenting') {
+                isInAR = false;
+                arControlsOverlay.classList.remove('active');
+                document.getElementById('statusText').textContent = 'Ready';
+                console.log('AR session ended');
             }
-        }, 1000);
+        });
 
-        // View controls
-        function resetView() {
-            modelViewer.resetTurntableRotation();
-            modelViewer.cameraOrbit = '0deg 75deg 105%';
-            modelViewer.fieldOfView = '45deg';
+        // Check AR Support
+        function updateARSupport() {
+            const badge = document.getElementById('arSupportBadge');
+            if (modelViewer.canActivateAR) {
+                badge.innerHTML = '<svg viewBox="0 0 16 16" width="12" height="12"><path fill="currentColor" d="M8 0a8 8 0 110 16A8 8 0 018 0zM6.78 10.53L5.22 8.97l-1.06 1.06 2.62 2.62 5.66-5.66-1.06-1.06-4.6 4.6z"/></svg> AR Supported';
+                badge.classList.add('success');
+            } else {
+                badge.innerHTML = '<svg viewBox="0 0 16 16" width="12" height="12"><path fill="currentColor" d="M8 0a8 8 0 100 16A8 8 0 008 0zM7 11V9h2v2H7zm0-8v6h2V3H7z"/></svg> AR Not Available';
+            }
         }
 
-        function toggleRotation() {
-            const btn = document.getElementById('rotateBtn');
-            if (isRotating) {
+        // Toggle AR Mode
+        function toggleARMode() {
+            if (modelViewer.canActivateAR) {
+                modelViewer.activateAR();
+            } else {
+                alert('AR tidak didukung di perangkat ini. Gunakan Chrome (Android ARCore) atau Safari (iOS).');
+            }
+        }
+
+        // AR Controls
+        function arRotateLeft() {
+            if (!isInAR) return;
+            currentRotation -= 45;
+            modelViewer.cameraOrbit = `${currentRotation}deg 75deg 105%`;
+        }
+
+        function arRotateRight() {
+            if (!isInAR) return;
+            currentRotation += 45;
+            modelViewer.cameraOrbit = `${currentRotation}deg 75deg 105%`;
+        }
+
+        function arScaleUp() {
+            if (!isInAR) return;
+            currentARScale += 0.2;
+            modelViewer.scale = `${currentARScale} ${currentARScale} ${currentARScale}`;
+            document.getElementById('arScaleValue').textContent = currentARScale.toFixed(1) + 'x';
+        }
+
+        function arScaleDown() {
+            if (!isInAR) return;
+            currentARScale = Math.max(0.2, currentARScale - 0.2);
+            modelViewer.scale = `${currentARScale} ${currentARScale} ${currentARScale}`;
+            document.getElementById('arScaleValue').textContent = currentARScale.toFixed(1) + 'x';
+        }
+
+        function arMoveUp() {
+            // This would require custom WebXR implementation
+            console.log('Move up in AR');
+        }
+
+        function arMoveDown() {
+            // This would require custom WebXR implementation
+            console.log('Move down in AR');
+        }
+
+        // AR Scale Control
+        function updateARScale(value) {
+            currentARScale = parseFloat(value);
+            document.getElementById('arScaleValue').textContent = value + 'x';
+            if (isInAR) {
+                modelViewer.scale = `${value} ${value} ${value}`;
+            }
+        }
+
+        // AR Placement
+        function setARPlacement(placement) {
+            arPlacement = placement;
+            modelViewer.setAttribute('ar-placement', placement);
+            
+            // Update button states
+            document.getElementById('placementFloor').classList.remove('active');
+            document.getElementById('placementWall').classList.remove('active');
+            document.getElementById(`placement${placement.charAt(0).toUpperCase() + placement.slice(1)}`).classList.add('active');
+        }
+
+        // Rotation Controls
+        function updateRotation(value) {
+            currentRotation = parseInt(value);
+            document.getElementById('rotateYValue').textContent = value + '°';
+            modelViewer.cameraOrbit = `${value}deg 75deg 105%`;
+        }
+
+        function rotateModel(degrees) {
+            currentRotation += degrees;
+            if (currentRotation >= 360) currentRotation -= 360;
+            if (currentRotation < 0) currentRotation += 360;
+            document.getElementById('rotateY').value = currentRotation;
+            document.getElementById('rotateYValue').textContent = currentRotation + '°';
+            modelViewer.cameraOrbit = `${currentRotation}deg 75deg 105%`;
+        }
+
+        function resetRotation() {
+            currentRotation = 0;
+            document.getElementById('rotateY').value = 0;
+            document.getElementById('rotateYValue').textContent = '0°';
+            modelViewer.cameraOrbit = '0deg 75deg 105%';
+        }
+
+        function toggleAutoRotate() {
+            const btn = document.getElementById('autoRotateBtn');
+            if (autoRotating) {
                 modelViewer.removeAttribute('auto-rotate');
-                btn.innerHTML = `
-                    <svg viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M8 2.5a5.487 5.487 0 00-4.131 1.869l1.204 1.204A.25.25 0 014.896 6H1.25A.25.25 0 011 5.75V2.104a.25.25 0 01.427-.177l1.38 1.38A7.001 7.001 0 0114.95 7.16a.75.75 0 11-1.49.178A5.501 5.501 0 008 2.5zM1.705 8.005a.75.75 0 01.834.656 5.501 5.501 0 009.592 2.97l-1.204-1.204a.25.25 0 01.177-.427h3.646a.25.25 0 01.25.25v3.646a.25.25 0 01-.427.177l-1.38-1.38A7.001 7.001 0 011.05 8.84a.75.75 0 01.656-.834z"></path>
-                    </svg>
-                    Start Rotation
-                `;
-                isRotating = false;
+                btn.textContent = 'Play';
+                autoRotating = false;
             } else {
                 modelViewer.setAttribute('auto-rotate', '');
-                btn.innerHTML = `
-                    <svg viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M8 2.5a5.487 5.487 0 00-4.131 1.869l1.204 1.204A.25.25 0 014.896 6H1.25A.25.25 0 011 5.75V2.104a.25.25 0 01.427-.177l1.38 1.38A7.001 7.001 0 0114.95 7.16a.75.75 0 11-1.49.178A5.501 5.501 0 008 2.5zM1.705 8.005a.75.75 0 01.834.656 5.501 5.501 0 009.592 2.97l-1.204-1.204a.25.25 0 01.177-.427h3.646a.25.25 0 01.25.25v3.646a.25.25 0 01-.427.177l-1.38-1.38A7.001 7.001 0 011.05 8.84a.75.75 0 01.656-.834z"></path>
-                    </svg>
-                    Pause Rotation
-                `;
-                isRotating = true;
+                btn.textContent = 'Pause';
+                autoRotating = true;
             }
         }
 
-        function frontView() {
-            modelViewer.cameraOrbit = '0deg 90deg 105%';
+        // Camera Views
+        function setCameraView(view) {
+            const views = {
+                front: '0deg 90deg 105%',
+                back: '180deg 90deg 105%',
+                left: '270deg 90deg 105%',
+                right: '90deg 90deg 105%',
+                top: '0deg 0deg 105%',
+                reset: '0deg 75deg 105%'
+            };
+            
+            if (views[view]) {
+                modelViewer.cameraOrbit = views[view];
+                if (view !== 'reset') {
+                    const angle = views[view].split('deg')[0];
+                    currentRotation = parseInt(angle);
+                    document.getElementById('rotateY').value = currentRotation;
+                    document.getElementById('rotateYValue').textContent = currentRotation + '°';
+                }
+            }
         }
 
-        function sideView() {
-            modelViewer.cameraOrbit = '90deg 90deg 105%';
-        }
-
-        // Lighting controls
+        // Lighting Controls
         function updateExposure(value) {
             modelViewer.exposure = value;
             document.getElementById('exposureValue').textContent = parseFloat(value).toFixed(1);
@@ -758,39 +806,37 @@
             document.getElementById('shadowValue').textContent = parseFloat(value).toFixed(1);
         }
 
-        // AR activation
-        function activateAR() {
-            if (modelViewer.canActivateAR) {
-                modelViewer.activateAR();
-            }
-        }
-
-        // Smooth scrolling
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // Keyboard shortcuts
+        // Keyboard Shortcuts
         document.addEventListener('keydown', (e) => {
             switch(e.key.toLowerCase()) {
                 case 'r':
-                    resetView();
+                    resetRotation();
+                    setCameraView('reset');
                     break;
                 case ' ':
                     e.preventDefault();
-                    toggleRotation();
+                    toggleAutoRotate();
+                    break;
+                case 'arrowleft':
+                    e.preventDefault();
+                    rotateModel(-15);
+                    break;
+                case 'arrowright':
+                    e.preventDefault();
+                    rotateModel(15);
+                    break;
+                case 'a':
+                    if (e.ctrlKey || e.metaKey) return;
+                    toggleARMode();
                     break;
             }
         });
+
+        // Initialize
+        setTimeout(() => {
+            setARPlacement('floor');
+            updateARSupport();
+        }, 1000);
     </script>
 </body>
 </html>
