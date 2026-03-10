@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="id" data-color-mode="dark" data-dark-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model Viewer - Kacamata</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* GitHub Dark Theme Colors */
+            --color-canvas-default: #0d1117;
+            --color-canvas-subtle: #161b22;
+            --color-canvas-inset: #010409;
+            --color-border-default: #30363d;
+            --color-border-muted: #21262d;
+            --color-fg-default: #c9d1d9;
+            --color-fg-muted: #8b949e;
+            --color-fg-subtle: #6e7681;
+            --color-accent-fg: #58a6ff;
+            --color-accent-emphasis: #1f6feb;
+            --color-success-fg: #3fb950;
+            --color-danger-fg: #f85149;
+            --color-attention-fg: #d29922;
+            --color-neutral-muted: rgba(110,118,129,0.4);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background-color: var(--color-canvas-default);
+            color: var(--color-fg-default);
+            line-height: 1.5;
+            font-size: 14px;
+            min-height: 100vh;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header */
+        header {
+            background-color: var(--color-canvas-subtle);
+            border-bottom: 1px solid var(--color-border-default);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--color-fg-default);
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .logo svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--color-fg-muted);
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 16px;
+            list-style: none;
+        }
+
+        .header-nav a {
+            color: var(--color-fg-default);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .header-nav a:hover {
+            background-color: var(--color-neutral-muted);
+            color: var(--color-accent-fg);
+        }
+
+        /* Main Content */
+        main {
+            padding: 32px 0;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--color-border-default);
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--color-fg-default);
+            margin-bottom: 8px;
+        }
+
+        .page-description {
+            font-size: 14px;
+            color: var(--color-fg-muted);
+        }
+
+        /* Layout Grid */
+        .viewer-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+        }
+
+        /* Model Viewer Card */
+        .viewer-card {
+            background-color: var(--color-canvas-subtle);
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .viewer-card:hover {
+            border-color: var(--color-border-muted);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .card-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--color-border-default);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-fg-default);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--color-fg-muted);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            background-color: var(--color-success-fg);
+            color: var(--color-canvas-default);
+        }
+
+        .status-badge.loading {
+            background-color: var(--color-attention-fg);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background-color: currentColor;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .card-body {
+            padding: 0;
+            position: relative;
+            background-color: var(--color-canvas-inset);
+        }
+
+        model-viewer {
+            width: 100%;
+            height: 600px;
+            background: transparent;
+            --progress-bar-color: var(--color-accent-fg);
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .control-card {
+            background-color: var(--color-canvas-subtle);
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        .control-header {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--color-fg-muted);
+            margin-bottom: 12px;
+        }
+
+        .control-group {
+            display: grid;
+            gap: 8px;
+        }
+
+        .control-btn {
+            background-color: var(--color-canvas-default);
+            border: 1px solid var(--color-border-default);
+            color: var(--color-fg-default);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: var(--color-fg-muted);
+        }
+
+        .control-btn:hover {
+            background-color: var(--color-neutral-muted);
+            border-color: var(--color-fg-muted);
+        }
+
+        .control-btn:active {
+            transform: scale(0.98);
+        }
+
+        .control-btn.primary {
+            background-color: var(--color-accent-emphasis);
+            border-color: var(--color-accent-emphasis);
+            color: white;
+        }
+
+        .control-btn.primary:hover {
+            background-color: #1a56db;
+        }
+
+        .control-btn.primary svg {
+            fill: white;
+        }
+
+        /* Slider Control */
+        .slider-group {
+            margin-top: 8px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--color-fg-muted);
+            margin-bottom: 8px;
+        }
+
+        .slider-value {
+            color: var(--color-fg-default);
+            font-weight: 500;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            background: var(--color-border-default);
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--color-accent-fg);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: var(--color-accent-fg);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Info List */
+        .info-list {
+            list-style: none;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+            border-bottom: 1px solid var(--color-border-muted);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: var(--color-fg-muted);
+        }
+
+        .info-value {
+            color: var(--color-fg-default);
+            font-weight: 500;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--color-border-default);
+            padding: 24px 0;
+            margin-top: 40px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--color-fg-muted);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .footer-links a {
+            color: var(--color-accent-fg);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--color-fg-default);
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .viewer-layout {
+                grid-template-columns: 1fr;
+            }
+
+            model-viewer {
+                height: 500px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 0 16px;
+            }
+
+            model-viewer {
+                height: 400px;
+            }
+
+            .page-title {
+                font-size: 20px;
+            }
+        }
+
+        /* Loading State */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--color-canvas-inset);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--color-border-default);
+            border-top-color: var(--color-accent-fg);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="#" class="logo">
+                    <span>3D Viewer</span>
+                </a>
+                <nav>
+                    <ul class="header-nav">
+                        <li><a href="#viewer">Viewer</a></li>
+                        <li><a href="#controls">Controls</a></li>
+                        <li><a href="#info">Info</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Model 3D - Kacamata</h1>
+                <p class="page-description">Interactive 3D model viewer dengan kontrol lengkap</p>
+            </div>
+
+            <!-- Viewer Layout -->
+            <div class="viewer-layout">
+                <!-- Model Viewer -->
+                <div class="viewer-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0zM8 0a8 8 0 100 16A8 8 0 008 0zm.5 4.75a.75.75 0 00-1.5 0v3.5a.75.75 0 00.471.696l2.5 1a.75.75 0 00.557-1.392L8.5 7.742V4.75z"></path>
+                            </svg>
+                            3D Model
+                        </div>
+                        <span class="status-badge loading" id="statusBadge">
+                            <span class="status-dot"></span>
+                            Loading
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="loading-overlay" id="loadingOverlay">
+                            <div class="spinner"></div>
+                        </div>
+                        <model-viewer 
+                            id="modelViewer"
+                            src="path/kacamata.glb" 
+                            alt="Model 3D Kacamata" 
+                            auto-rotate 
+                            camera-controls
+                            shadow-intensity="1"
+                            environment-image="neutral"
+                            exposure="1"
+                            shadow-softness="0.5">
+                        </model-viewer>
+                    </div>
+                </div>
+
+                <!-- Controls Panel -->
+                <div class="controls-panel">
+                    <!-- View Controls -->
+                    <div class="control-card">
+                        <div class="control-header">View Controls</div>
+                        <div class="control-group">
+                            <button class="control-btn" onclick="resetView()">
+                                <svg viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8 2.5a5.487 5.487 0 00-4.131 1.869l1.204 1.204A.25.25 0 014.896 6H1.25A.25.25 0 011 5.75V2.104a.25.25 0 01.427-.177l1.38 1.38A7.001 7.001 0 0114.95 7.16a.75.75 0 11-1.49.178A5.501 5.501 0 008 2.5zM1.705 8.005a.75.75 0 01.834.656 5.501 5.501 0 009.592 2.97l-1.204-1.204a.25.25 0 01.177-.427h3.646a.25.25 0 01.25.25v3.646a.25.25 0 01-.427.177l-1.38-1.38A7.001 7.001 0 011.05 8.84a.75.75 0 01.656-.834z"></path>
+                                </svg>
+                                Reset View
+                            </button>
+                            <button class="control-btn" onclick="toggleRotation()" id="rotateBtn">
+                                <svg viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8 2.5a5.487 5.487 0 00-4.131 1.869l1.204 1.204A.25.25 0 014.896 6H1.25A.25.25 0 011 5.75V2.104a.25.25 0 01.427-.177l1.38 1.38A7.001 7.001 0 0114.95 7.16a.75.75 0 11-1.49.178A5.501 5.501 0 008 2.5zM1.705 8.005a.75.75 0 01.834.656 5.501 5.501 0 009.592 2.97l-1.204-1.204a.25.25 0 01.177-.427h3.646a.25.25 0 01.25.25v3.646a.25.25 0 01-.427.177l-1.38-1.38A7.001 7.001 0 011.05 8.84a.75.75 0 01.656-.834z"></path>
+                                </svg>
+                                Pause Rotation
+                            </button>
+                        </div>
+                        <div class="control-group" style="grid-template-columns: 1fr 1fr; margin-top: 8px;">
+                            <button class="control-btn" onclick="frontView()">Front</button>
+                            <button class="control-btn" onclick="sideView()">Side</button>
+                        </div>
+                    </div>
+
+                    <!-- Lighting Controls -->
+                    <div class="control-card">
+                        <div class="control-header">Lighting</div>
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Exposure</span>
+                                <span class="slider-value" id="exposureValue">1.0</span>
+                            </div>
+                            <input type="range" id="exposure" min="0.5" max="2" step="0.1" value="1" oninput="updateExposure(this.value)">
+                        </div>
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Shadow Intensity</span>
+                                <span class="slider-value" id="shadowValue">1.0</span>
+                            </div>
+                            <input type="range" id="shadow" min="0" max="2" step="0.1" value="1" oninput="updateShadow(this.value)">
+                        </div>
+                    </div>
+
+                    <!-- Model Info -->
+                    <div class="control-card">
+                        <div class="control-header">Model Info</div>
+                        <ul class="info-list">
+                            <li class="info-item">
+                                <span class="info-label">Format</span>
+                                <span class="info-value">GLB</span>
+                            </li>
+                            <li class="info-item">
+                                <span class="info-label">Status</span>
+                                <span class="info-value" id="modelStatus">Loading...</span>
+                            </li>
+                            <li class="info-item">
+                                <span class="info-label">Controls</span>
+                                <span class="info-value">Enabled</span>
+                            </li>
+                            <li class="info-item">
+                                <span class="info-label">AR Support</span>
+                                <span class="info-value" id="arSupport">Checking...</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- AR Button -->
+                    <button class="control-btn primary" onclick="activateAR()" id="arButton" disabled>
+                        <svg viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0zM8 0a8 8 0 100 16A8 8 0 008 0zm3.78 9.72a.75.75 0 10-1.06-1.06L6.75 12.69l-1.97-1.97a.75.75 0 00-1.06 1.06l2.5 2.5a.75.75 0 001.06 0l4.5-4.56z"></path>
+                        </svg>
+                        View in AR
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div>© 2024 3D Viewer. All rights reserved.</div>
+                <div class="footer-links">
+                    <a href="#">Docs</a>
+                    <a href="#">Support</a>
+                    <a href="#">GitHub</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const modelViewer = document.getElementById('modelViewer');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const statusBadge = document.getElementById('statusBadge');
+        const modelStatus = document.getElementById('modelStatus');
+        const arSupport = document.getElementById('arSupport');
+        const arButton = document.getElementById('arButton');
+        let isRotating = true;
+
+        // Model loaded event
+        modelViewer.addEventListener('load', () => {
+            loadingOverlay.classList.add('hidden');
+            statusBadge.textContent = 'Ready';
+            statusBadge.classList.remove('loading');
+            modelStatus.textContent = 'Ready';
+            modelStatus.style.color = 'var(--color-success-fg)';
+        });
+
+        // Model error event
+        modelViewer.addEventListener('error', () => {
+            loadingOverlay.classList.add('hidden');
+            statusBadge.textContent = 'Error';
+            statusBadge.style.backgroundColor = 'var(--color-danger-fg)';
+            modelStatus.textContent = 'Error';
+            modelStatus.style.color = 'var(--color-danger-fg)';
+        });
+
+        // Check AR support
+        if (modelViewer.canActivateAR) {
+            arSupport.textContent = 'Yes';
+            arSupport.style.color = 'var(--color-success-fg)';
+            arButton.disabled = false;
+        } else {
+            arSupport.textContent = 'No';
+            arSupport.style.color = 'var(--color-fg-muted)';
+        }
+
+        // View controls
+        function resetView() {
+            modelViewer.resetTurntableRotation();
+            modelViewer.cameraOrbit = '0deg 75deg 105%';
+            modelViewer.fieldOfView = '45deg';
+        }
+
+        function toggleRotation() {
+            const btn = document.getElementById('rotateBtn');
+            if (isRotating) {
+                modelViewer.removeAttribute('auto-rotate');
+                btn.innerHTML = `
+                    <svg viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 2.5a5.487 5.487 0 00-4.131 1.869l1.204 1.204A.25.25 0 014.896 6H1.25A.25.25 0 011 5.75V2.104a.25.25 0 01.427-.177l1.38 1.38A7.001 7.001 0 0114.95 7.16a.75.75 0 11-1.49.178A5.501 5.501 0 008 2.5zM1.705 8.005a.75.75 0 01.834.656 5.501 5.501 0 009.592 2.97l-1.204-1.204a.25.25 0 01.177-.427h3.646a.25.25 0 01.25.25v3.646a.25.25 0 01-.427.177l-1.38-1.38A7.001 7.001 0 011.05 8.84a.75.75 0 01.656-.834z"></path>
+                    </svg>
+                    Start Rotation
+                `;
+                isRotating = false;
+            } else {
+                modelViewer.setAttribute('auto-rotate', '');
+                btn.innerHTML = `
+                    <svg viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 2.5a5.487 5.487 0 00-4.131 1.869l1.204 1.204A.25.25 0 014.896 6H1.25A.25.25 0 011 5.75V2.104a.25.25 0 01.427-.177l1.38 1.38A7.001 7.001 0 0114.95 7.16a.75.75 0 11-1.49.178A5.501 5.501 0 008 2.5zM1.705 8.005a.75.75 0 01.834.656 5.501 5.501 0 009.592 2.97l-1.204-1.204a.25.25 0 01.177-.427h3.646a.25.25 0 01.25.25v3.646a.25.25 0 01-.427.177l-1.38-1.38A7.001 7.001 0 011.05 8.84a.75.75 0 01.656-.834z"></path>
+                    </svg>
+                    Pause Rotation
+                `;
+                isRotating = true;
+            }
+        }
+
+        function frontView() {
+            modelViewer.cameraOrbit = '0deg 90deg 105%';
+        }
+
+        function sideView() {
+            modelViewer.cameraOrbit = '90deg 90deg 105%';
+        }
+
+        // Lighting controls
+        function updateExposure(value) {
+            modelViewer.exposure = value;
+            document.getElementById('exposureValue').textContent = parseFloat(value).toFixed(1);
+        }
+
+        function updateShadow(value) {
+            modelViewer.shadowIntensity = value;
+            document.getElementById('shadowValue').textContent = parseFloat(value).toFixed(1);
+        }
+
+        // AR activation
+        function activateAR() {
+            if (modelViewer.canActivateAR) {
+                modelViewer.activateAR();
+            }
+        }
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            switch(e.key.toLowerCase()) {
+                case 'r':
+                    resetView();
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    toggleRotation();
+                    break;
+            }
+        });
+    </script>
+</body>
+</html> 

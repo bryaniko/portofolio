@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duck Hunt Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        img {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            -webkit-user-drag: none;
+            pointer-events: none;
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive, Arial, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #90EE90 70%, #90EE90 100%);
+            margin: 0;
+            /* container now full-screen, no need to center */
+            overflow: hidden;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="none" stroke="%23FF4757" stroke-width="2"/><line x1="16" y1="0" x2="16" y2="32" stroke="%23FF4757" stroke-width="2"/><line x1="0" y1="16" x2="32" y2="16" stroke="%23FF4757" stroke-width="2"/></svg>') 16 16, auto;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #8B7355 70%, #8B7355 100%);
+            /* optional: remove border if not needed */
+            border: none;
+            box-shadow: none;
+            overflow: hidden;
+        }
+
+        .scoreboard {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 14px;
+            z-index: 100;
+        }
+
+        .scoreboard div {
+            margin: 5px 0;
+        }
+
+        .duck {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="none" stroke="%23FF4757" stroke-width="2"/><line x1="16" y1="0" x2="16" y2="32" stroke="%23FF4757" stroke-width="2"/><line x1="0" y1="16" x2="32" y2="16" stroke="%23FF4757" stroke-width="2"/></svg>') 16 16, auto;
+
+            transition: transform 0.1s;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            pointer-events: auto;
+        }
+
+        .duck img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-drag: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .duck:hover {
+            transform: scale(1.1);
+        }
+
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.7;
+            animation: float 30s linear infinite;
+        }
+
+        @keyframes float {
+            from { transform: translateX(-200px); }
+            to { transform: translateX(calc(100vw + 200px)); }
+        }
+
+        .shot-effect {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,200,0,0.4) 50%, transparent 100%);
+            pointer-events: none;
+            animation: shotFlash 0.3s ease-out;
+            z-index: 50;
+        }
+
+        @keyframes shotFlash {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+
+        .game-over, .start-screen, .settings-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 200;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .main-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(25,25,50,0.95) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 250;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .main-menu h1 {
+            font-size: 56px;
+            margin-bottom: 20px;
+            color: #FFD700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 3px 3px 6px rgba(0,0,0,0.8);
+            animation: titleGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes titleGlow {
+            0%, 100% { text-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 3px 3px 6px rgba(0,0,0,0.8); }
+            50% { text-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 3px 3px 6px rgba(0,0,0,0.8); }
+        }
+
+        .main-menu p {
+            font-size: 14px;
+            margin: 10px 0;
+            color: #ddd;
+        }
+
+        .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 300;
+        }
+
+        .loading-screen h2 {
+            font-size: 32px;
+            margin-bottom: 30px;
+            color: #FFD700;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(255, 215, 0, 0.2);
+            border-top: 6px solid #FFD700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #FFD700;
+        }
+
+        .start-screen h1, .settings-menu h1 {
+            font-size: 48px;
+            margin-bottom: 30px;
+            color: #FFD700;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+        }
+
+        .start-screen p {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        button {
+            font-family: 'Press Start 2P', cursive, Arial, sans-serif;
+            font-size: 14px;
+            padding: 15px 30px;
+            margin: 10px;
+            background: #FF6347;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        button:hover {
+            background: #FF4500;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(0,0,0,0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .button-secondary {
+            background: #4CAF50;
+        }
+
+        .button-secondary:hover {
+            background: #45a049;
+        }
+
+        .settings-container {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .setting-item {
+            margin: 25px 0;
+        }
+
+        .setting-item label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 10px;
+            color: #FFD700;
+        }
+
+        .setting-item input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+        }
+
+        .setting-item input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #FF6347;
+            cursor: pointer;
+        }
+
+        .setting-item input[type="range"]::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #FF6347;
+            cursor: pointer;
+            border: none;
+        }
+
+        .setting-value {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 16px;
+            color: white;
+            min-width: 80px;
+        }
+
+        .upload-area {
+            border: 3px dashed #FFD700;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.05);
+            font-size: 12px;
+        }
+
+        .upload-area:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #FFA500;
+        }
+
+        .upload-area.dragover {
+            background: rgba(255,215,0,0.2);
+            border-color: #FFF;
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .upload-preview {
+            margin-top: 15px;
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .ammo-display {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .bullet {
+            width: 15px;
+            height: 30px;
+            background: linear-gradient(to bottom, #FFD700 0%, #FFA500 100%);
+            border: 2px solid #8B4513;
+            border-radius: 5px;
+        }
+
+        .bullet.used {
+            background: #555;
+            opacity: 0.3;
+        }
+
+        .grass {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 30%;
+            background: linear-gradient(to bottom, #90EE90 0%, #228B22 100%);
+            z-index: 5;
+        }
+
+        .tree {
+            position: absolute;
+            bottom: 15%;
+            width: 80px;
+            height: 120px;
+            z-index: 3;
+        }
+
+        .tree-trunk {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 60px;
+            background: #8B4513;
+        }
+
+        .tree-leaves {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 40px solid transparent;
+            border-right: 40px solid transparent;
+            border-bottom: 70px solid #228B22;
+        }
+
+        .settings-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            font-size: 12px;
+            padding: 10px 20px;
+        }
+
+
+
+        .duck-spawn-point {
+            position: absolute;
+            bottom: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+            background: rgba(139, 69, 19, 0.3);
+            border-radius: 50%;
+            border: 3px dashed #654321;
+            z-index: 2;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: translateX(-50%) scale(1);
+                opacity: 0.3;
+            }
+            50% {
+                transform: translateX(-50%) scale(1.2);
+                opacity: 0.6;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- audio sources (place actual file paths or URLs) -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="audio/background.mp3" type="audio/mpeg">
+        <!-- add fallback text if needed -->
+    </audio>
+    <audio id="duckSpawnSound" preload="auto">
+        <source src="audio/duck_spawn.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="shootSound" preload="auto">
+        <source src="audio/shoot.mp3" type="audio/mpeg">
+    </audio>
+    <div class="game-container" id="gameContainer">
+        <!-- Main Menu -->
+        <div class="main-menu" id="mainMenu">
+            <h1>🦆 DUCK HUNT 🦆</h1>
+            <p>Selamat datang di Duck Hunt Game!</p>
+            <p>Uji keahlian menembak Anda</p>
+            <p>Made By: Bryan Iko Rismaputra</p>
+            <div class="button-group">
+                <button class="button-secondary" onclick="startGameFromMenu()">▶️ MULAI GAME</button>
+                <button onclick="showSettingsFromMenu()">⚙️ PENGATURAN</button>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div class="loading-screen" id="loadingScreen">
+            <h2>LOADING...</h2>
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Menyiapkan permainan...</p>
+        </div>
+
+        <!-- Settings Menu -->
+        <div class="settings-menu" id="settingsMenu" style="display: none;">
+            <h1>⚙️ PENGATURAN</h1>
+            <div class="settings-container">
+                <div class="setting-item">
+                    <label>
+                        JUMLAH BEBEK PER WAVE
+                        <span class="setting-value" id="duckCountValue">3 Bebek</span>
+                    </label>
+                    <input type="range" id="duckCount" min="1" max="10" value="3" oninput="updateDuckCount(this.value)">
+                </div>
+
+                <div class="setting-item">
+                    <label>
+                        KECEPATAN BEBEK
+                        <span class="setting-value" id="speedValue">Normal</span>
+                    </label>
+                    <input type="range" id="duckSpeed" min="1" max="5" value="3" oninput="updateSpeed(this.value)">
+                </div>
+
+                <div class="setting-item">
+                    <label>
+                        JUMLAH WAVE (RONDE)
+                        <span class="setting-value" id="waveCountValue">Unlimited</span>
+                    </label>
+                    <input type="range" id="waveCount" min="0" max="20" value="0" oninput="updateWaveCount(this.value)">
+                </div>
+
+                <div class="setting-item">
+                    <label>
+                        JUMLAH PELURU PER WAVE
+                        <span class="setting-value" id="ammoCountValue">3 Peluru</span>
+                    </label>
+                    <input type="range" id="ammoCount" min="1" max="10" value="3" oninput="updateAmmoCount(this.value)">
+                </div>
+
+                <div class="setting-item">
+                    <label style="margin-bottom: 15px;">GAMBAR BEBEK CUSTOM</label>
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('duckImage').click()">
+                        <input type="file" id="duckImage" accept="image/*" onchange="handleImageUpload(event)">
+                        <div id="uploadText">
+                            🖼️ Klik atau drag gambar di sini<br>
+                            <small>(PNG, JPG, GIF)</small>
+                        </div>
+                        <img id="uploadPreview" class="upload-preview" style="display: none;">
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button onclick="resetSettings()">🔄 RESET</button>
+                    <button onclick="backToMainMenu()">🏠 KEMBALI</button>
+                    <button class="button-secondary" onclick="closeSettingsToMenu()">✓ SIMPAN</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div class="game-over" id="gameOver" style="display: none;">
+            <h1>GAME OVER!</h1>
+            <p>SKOR AKHIR: <span id="finalScore">0</span></p>
+            <p>BEBEK TERKENA: <span id="finalDucks">0</span></p>
+            <p>AKURASI: <span id="accuracy">0</span>%</p>
+            <div class="button-group">
+                <button onclick="returnToMainMenu()">🏠 MENU UTAMA</button>
+                <button class="button-secondary" onclick="restartGame()">🔄 MAIN LAGI</button>
+            </div>
+        </div>
+
+        <!-- Scoreboard -->
+        <div class="scoreboard" id="scoreboard" style="display: none;">
+            <div>SKOR: <span id="score">0</span></div>
+            <div>WAVE: <span id="round">1</span><span id="maxWave"></span></div>
+            <div>BEBEK: <span id="ducksHit">0</span>/<span id="ducksTotal">0</span></div>
+        </div>
+
+        <!-- Settings Button During Game -->
+        <button class="settings-btn" id="settingsBtn" style="display: none;" onclick="pauseAndShowSettings()">⚙️</button>
+        
+        <!-- Menu Button During Game -->
+        <button class="settings-btn" id="menuBtn" style="display: none; top: 70px;" onclick="pauseAndReturnToMenu()">🏠</button>
+
+        <!-- Ammo Display -->
+        <div class="ammo-display" id="ammoDisplay"></div>
+
+        <!-- Background elements -->
+        <div class="grass"></div>
+        
+        <!-- Barriers -->
+        <div class="barrier barrier-left"></div>
+        <div class="barrier barrier-right"></div>
+        <div class="barrier barrier-top"></div>
+        <div class="barrier barrier-bottom"></div>
+        
+        <!-- Duck Spawn Point Indicator -->
+        <div class="duck-spawn-point" id="spawnPoint" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Game Settings
+        let settings = {
+            ducksPerWave: 3,
+            duckSpeed: 3,
+            totalWaves: 0,
+            ammoPerWave: 3,
+            customDuckImage: null
+        };
+
+        // Game State
+        let score = 0;
+        let round = 1;
+        let ducksHit = 0;
+        let ducksTotal = 0;
+        let shotsFired = 0;
+        let ammo = 3;
+        let ducks = [];
+        let gameActive = false;
+        let roundActive = false;
+
+        // DOM Elements
+        const gameContainer = document.getElementById('gameContainer');
+        const scoreEl = document.getElementById('score');
+        const bgMusic = document.getElementById('bgMusic');
+        const duckSpawnSound = document.getElementById('duckSpawnSound');
+        const shootSound = document.getElementById('shootSound');
+
+        const roundEl = document.getElementById('round');
+        const ducksHitEl = document.getElementById('ducksHit');
+        const ducksTotalEl = document.getElementById('ducksTotal');
+        const ammoDisplay = document.getElementById('ammoDisplay');
+        const maxWaveEl = document.getElementById('maxWave');
+
+        // Speed multipliers
+        const speedMultipliers = {
+            1: 0.5,
+            2: 0.75,
+            3: 1,
+            4: 1.5,
+            5: 2
+        };
+
+        const speedLabels = {
+            1: 'Sangat Lambat',
+            2: 'Lambat',
+            3: 'Normal',
+            4: 'Cepat',
+            5: 'Sangat Cepat'
+        };
+
+        // Settings Functions
+        function showSettingsFromMenu() {
+            document.getElementById('settingsMenu').style.display = 'flex';
+            document.getElementById('mainMenu').style.display = 'none';
+        }
+
+        function closeSettingsToMenu() {
+            document.getElementById('settingsMenu').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'flex';
+        }
+
+        function backToMainMenu() {
+            document.getElementById('settingsMenu').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'flex';
+        }
+
+        function pauseAndShowSettings() {
+            gameActive = false;
+            roundActive = false;
+            document.getElementById('settingsMenu').style.display = 'flex';
+        }
+
+        function pauseAndReturnToMenu() {
+            if (confirm('Kembali ke menu utama? Progress permainan akan hilang.')) {
+                returnToMainMenu();
+            }
+        }
+
+        function returnToMainMenu() {
+            document.getElementById('loadingScreen').style.display = 'flex';
+            gameActive = false;
+            roundActive = false;
+            clearAllDucks();
+            
+            document.getElementById('scoreboard').style.display = 'none';
+            document.getElementById('settingsBtn').style.display = 'none';
+            document.getElementById('menuBtn').style.display = 'none';
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('settingsMenu').style.display = 'none';
+            document.getElementById('spawnPoint').style.display = 'none';
+            
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('mainMenu').style.display = 'flex';
+            }, 1000);
+        }
+
+        function startGameFromMenu() {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('loadingScreen').style.display = 'flex';
+            clearAllDucks();
+            
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+                startGame();
+            }, 1500);
+        }
+
+        function clearAllDucks() {
+            ducks.forEach(duck => {
+                if (duck && duck.parentNode) {
+                    duck.remove();
+                }
+            });
+            ducks = [];
+            
+            const strayDucks = gameContainer.querySelectorAll('.duck');
+            strayDucks.forEach(duck => duck.remove());
+        }
+
+        function updateDuckCount(value) {
+            settings.ducksPerWave = parseInt(value);
+            document.getElementById('duckCountValue').textContent = value + ' Bebek';
+        }
+
+        function updateSpeed(value) {
+            settings.duckSpeed = parseInt(value);
+            document.getElementById('speedValue').textContent = speedLabels[value];
+        }
+
+        function updateWaveCount(value) {
+            settings.totalWaves = parseInt(value);
+            document.getElementById('waveCountValue').textContent = value == 0 ? 'Unlimited' : value + ' Wave';
+        }
+
+        function updateAmmoCount(value) {
+            settings.ammoPerWave = parseInt(value);
+            document.getElementById('ammoCountValue').textContent = value + ' Peluru';
+        }
+
+        function resetSettings() {
+            settings = {
+                ducksPerWave: 3,
+                duckSpeed: 3,
+                totalWaves: 0,
+                ammoPerWave: 3,
+                customDuckImage: null
+            };
+            
+            document.getElementById('duckCount').value = 3;
+            document.getElementById('duckSpeed').value = 3;
+            document.getElementById('waveCount').value = 0;
+            document.getElementById('ammoCount').value = 3;
+            document.getElementById('uploadPreview').style.display = 'none';
+            document.getElementById('uploadText').style.display = 'block';
+            
+            updateDuckCount(3);
+            updateSpeed(3);
+            updateWaveCount(0);
+            updateAmmoCount(3);
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    settings.customDuckImage = e.target.result;
+                    const preview = document.getElementById('uploadPreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    document.getElementById('uploadText').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Drag and Drop
+        window.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('uploadArea');
+            if (uploadArea) {
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragover');
+                });
+
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('dragover');
+                });
+
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragover');
+                    const file = e.dataTransfer.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            settings.customDuckImage = e.target.result;
+                            const preview = document.getElementById('uploadPreview');
+                            preview.src = e.target.result;
+                            preview.style.display = 'block';
+                            document.getElementById('uploadText').style.display = 'none';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        });
+
+        // Game Functions
+        function startGame() {
+            clearAllDucks();
+            // play background music (some browsers require interaction first)
+            if (bgMusic.paused) {
+                bgMusic.currentTime = 0;
+                bgMusic.play().catch(()=>{});
+            }
+            
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('settingsMenu').style.display = 'none';
+            document.getElementById('scoreboard').style.display = 'block';
+            document.getElementById('settingsBtn').style.display = 'block';
+            document.getElementById('menuBtn').style.display = 'block';
+            document.getElementById('spawnPoint').style.display = 'block';
+            
+            gameActive = true;
+            score = 0;
+            round = 1;
+            ducksHit = 0;
+            ducksTotal = 0;
+            shotsFired = 0;
+            
+            updateScore();
+            addClouds();
+            addTrees();
+            startRound();
+        }
+
+        function restartGame() {
+            clearAllDucks();
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('loadingScreen').style.display = 'flex';
+            
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+                startGame();
+            }, 800);
+        }
+
+        function startRound() {
+            if (settings.totalWaves > 0 && round > settings.totalWaves) {
+                endGame();
+                return;
+            }
+
+            roundActive = true;
+            ammo = settings.ammoPerWave;
+            ducksTotal += settings.ducksPerWave;
+            updateScore();
+            updateAmmo();
+            
+            for (let i = 0; i < settings.ducksPerWave; i++) {
+                setTimeout(() => {
+                    if (gameActive) spawnDuck();
+                }, i * 1500);
+            }
+        }
+
+        function spawnDuck() {
+            // play spawn sound effect
+            duckSpawnSound.currentTime = 0;
+            duckSpawnSound.play().catch(()=>{});
+            const duck = document.createElement('div');
+            duck.className = 'duck';
+            
+            if (settings.customDuckImage) {
+                const img = document.createElement('img');
+                img.src = settings.customDuckImage;
+                img.draggable = false;
+                duck.appendChild(img);
+            } else {
+                duck.innerHTML = '🦆';
+                duck.style.fontSize = '50px';
+            }
+            
+            const containerRect = gameContainer.getBoundingClientRect();
+            const containerWidth = containerRect.width;
+            const containerHeight = containerRect.height;
+            const startX = containerWidth / 2 - 30;
+            const startY = containerHeight * 0.7 - 60;
+            
+            duck.style.left = startX + 'px';
+            duck.style.top = startY + 'px';
+            
+            const spreadAngle = (Math.random() - 0.5) * 120;
+            const angleRad = (spreadAngle - 90) * Math.PI / 180;
+            
+            const baseSpeed = (Math.random() * 2 + 3);
+            const multiplier = speedMultipliers[settings.duckSpeed];
+            const totalSpeed = baseSpeed * multiplier;
+            
+            const speedX = Math.cos(angleRad) * totalSpeed;
+            const speedY = Math.sin(angleRad) * totalSpeed;
+            
+            duck.dataset.speedX = speedX;
+            duck.dataset.speedY = speedY;
+            duck.dataset.hit = 'false';
+            
+            duck.style.transform = `rotate(${spreadAngle}deg)`;
+            duck.addEventListener('click', shootDuck);
+            duck.addEventListener('dragstart', (e) => e.preventDefault());
+            
+            gameContainer.appendChild(duck);
+            ducks.push(duck);
+            
+            moveDuck(duck);
+        }
+
+        function moveDuck(duck) {
+            if (!gameActive || duck.dataset.hit === 'true') return;
+            
+            const currentX = parseFloat(duck.style.left);
+            const currentY = parseFloat(duck.style.top);
+            const speedX = parseFloat(duck.dataset.speedX);
+            const speedY = parseFloat(duck.dataset.speedY);
+            
+            let newX = currentX + speedX;
+            let newY = currentY + speedY;
+            
+            const containerRect = gameContainer.getBoundingClientRect();
+            const containerWidth = containerRect.width;
+            const containerHeight = containerRect.height;
+            
+            const leftBarrier = 40;
+            const rightBarrier = containerWidth - 40 - 60;
+            const topBarrier = 40;
+            const bottomBarrier = containerHeight * 0.7 - 40;
+            
+            if (newX < leftBarrier) {
+                duck.dataset.speedX = Math.abs(speedX);
+                newX = leftBarrier;
+            } else if (newX > rightBarrier) {
+                duck.dataset.speedX = -Math.abs(speedX);
+                newX = rightBarrier;
+            }
+            
+            if (newY < topBarrier) {
+                duck.dataset.speedY = Math.abs(speedY);
+                newY = topBarrier;
+            } else if (newY > bottomBarrier) {
+                duck.dataset.speedY = -Math.abs(speedY);
+                newY = bottomBarrier;
+            }
+            
+            duck.style.left = newX + 'px';
+            duck.style.top = newY + 'px';
+            
+            const angle = Math.atan2(parseFloat(duck.dataset.speedY), parseFloat(duck.dataset.speedX)) * 180 / Math.PI;
+            if (duck.dataset.hit !== 'true') {
+                duck.style.transform = `rotate(${angle + 90}deg)`;
+            }
+            
+            requestAnimationFrame(() => moveDuck(duck));
+        }
+
+        function shootDuck(e) {
+            if (!gameActive || !roundActive || ammo <= 0) return;
+            // play shooting sound
+            shootSound.currentTime = 0;
+            shootSound.play().catch(()=>{});
+            
+            const duck = e.currentTarget;
+            if (duck.dataset.hit === 'true') return;
+            
+            e.stopPropagation();
+            
+            ammo--;
+            shotsFired++;
+            updateAmmo();
+            
+            duck.dataset.hit = 'true';
+            duck.innerHTML = '💥';
+            duck.style.fontSize = '50px';
+            createShotEffect(e.clientX, e.clientY);
+            
+            score += 100;
+            ducksHit++;
+            updateScore();
+            
+            setTimeout(() => {
+                let fallInterval = setInterval(() => {
+                    const currentY = parseFloat(duck.style.top);
+                    if (currentY > gameContainer.offsetHeight) {
+                        clearInterval(fallInterval);
+                        duck.remove();
+                        ducks = ducks.filter(d => d !== duck);
+                        checkRoundEnd();
+                    } else {
+                        duck.style.top = (currentY + 10) + 'px';
+                        duck.style.transform = 'rotate(' + (currentY * 2) + 'deg)';
+                    }
+                }, 30);
+            }, 300);
+        }
+
+        function createShotEffect(x, y) {
+            const effect = document.createElement('div');
+            effect.className = 'shot-effect';
+            effect.style.left = (x - 15) + 'px';
+            effect.style.top = (y - 15) + 'px';
+            document.body.appendChild(effect);
+            setTimeout(() => effect.remove(), 300);
+        }
+
+        function checkRoundEnd() {
+            if (ammo <= 0 || ducks.length === 0) {
+                roundActive = false;
+                setTimeout(() => {
+                    if (gameActive) {
+                        round++;
+                        startRound();
+                    }
+                }, 2000);
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            roundActive = false;
+            
+            document.getElementById('scoreboard').style.display = 'none';
+            document.getElementById('settingsBtn').style.display = 'none';
+            document.getElementById('menuBtn').style.display = 'none';
+            document.getElementById('spawnPoint').style.display = 'none';
+            
+            const accuracy = shotsFired > 0 ? Math.round((ducksHit / shotsFired) * 100) : 0;
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalDucks').textContent = ducksHit;
+            document.getElementById('accuracy').textContent = accuracy;
+            document.getElementById('gameOver').style.display = 'flex';
+            
+            clearAllDucks();
+        }
+
+        function updateScore() {
+            scoreEl.textContent = score;
+            roundEl.textContent = round;
+            ducksHitEl.textContent = ducksHit;
+            ducksTotalEl.textContent = ducksTotal;
+            
+            if (settings.totalWaves > 0) {
+                maxWaveEl.textContent = '/' + settings.totalWaves;
+            } else {
+                maxWaveEl.textContent = '';
+            }
+        }
+
+        function updateAmmo() {
+            ammoDisplay.innerHTML = '';
+            for (let i = 0; i < settings.ammoPerWave; i++) {
+                const bullet = document.createElement('div');
+                bullet.className = 'bullet' + (i >= ammo ? ' used' : '');
+                ammoDisplay.appendChild(bullet);
+            }
+        }
+
+        function addClouds() {
+            for (let i = 0; i < 5; i++) {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud';
+                cloud.style.width = (Math.random() * 80 + 60) + 'px';
+                cloud.style.height = (Math.random() * 40 + 30) + 'px';
+                cloud.style.top = (Math.random() * 40) + '%';
+                cloud.style.left = (Math.random() * 100) + '%';
+                cloud.style.animationDuration = (Math.random() * 20 + 20) + 's';
+                cloud.style.animationDelay = (Math.random() * 10) + 's';
+                gameContainer.appendChild(cloud);
+            }
+        }
+
+        function addTrees() {
+            const positions = [10, 30, 70, 90];
+            positions.forEach(pos => {
+                const tree = document.createElement('div');
+                tree.className = 'tree';
+                tree.style.left = pos + '%';
+                tree.innerHTML = '<div class="tree-trunk"></div><div class="tree-leaves"></div>';
+                gameContainer.appendChild(tree);
+            });
+        }
+
+        // Miss shot on background
+        gameContainer.addEventListener('click', (e) => {
+            if (!gameActive || !roundActive || ammo <= 0) return;
+            if (e.target === gameContainer || e.target.className === 'grass') {
+                ammo--;
+                shotsFired++;
+                updateAmmo();
+                createShotEffect(e.clientX, e.clientY);
+                checkRoundEnd();
+            }
+        });
+    </script>
+</body>
+</html>
