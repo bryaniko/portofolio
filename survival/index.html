@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survival POV - Game Bertahan Hidup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            color: white;
+            font-size: 14px;
+        }
+
+        .stats {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            min-width: 200px;
+        }
+
+        .stat-bar {
+            margin: 8px 0;
+        }
+
+        .stat-label {
+            margin-bottom: 3px;
+            font-weight: bold;
+        }
+
+        .bar-container {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            transition: width 0.3s;
+            border-radius: 10px;
+        }
+
+        .health-bar { background: linear-gradient(90deg, #ff4444, #ff6666); }
+        .hunger-bar { background: linear-gradient(90deg, #ff8800, #ffaa00); }
+        .thirst-bar { background: linear-gradient(90deg, #4488ff, #66aaff); }
+
+        .inventory {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .inventory-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .item {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .item-icon {
+            display: inline-block;
+            width: 20px;
+            margin-right: 8px;
+        }
+
+        .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+        }
+
+        .crosshair::before,
+        .crosshair::after {
+            content: '';
+            position: absolute;
+            background: white;
+        }
+
+        .crosshair::before {
+            width: 2px;
+            height: 20px;
+            left: 9px;
+        }
+
+        .crosshair::after {
+            width: 20px;
+            height: 2px;
+            top: 9px;
+        }
+
+        .message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 18px;
+            text-align: center;
+            pointer-events: all;
+        }
+
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .controls-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        #startBtn {
+            padding: 10px 20px;
+            margin-top: 15px;
+            background: #44ff44;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            pointer-events: all;
+        }
+
+        #startBtn:hover {
+            background: #55ff55;
+        }
+
+        .interact-prompt {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="ui">
+        <div class="stats">
+            <div class="stat-bar">
+                <div class="stat-label">❤️ Kesehatan</div>
+                <div class="bar-container">
+                    <div class="bar-fill health-bar" id="healthBar" style="width: 100%"></div>
+                </div>
+            </div>
+            <div class="stat-bar">
+                <div class="stat-label">🍖 Lapar</div>
+                <div class="bar-container">
+                    <div class="bar-fill hunger-bar" id="hungerBar" style="width: 100%"></div>
+                </div>
+            </div>
+            <div class="stat-bar">
+                <div class="stat-label">💧 Haus</div>
+                <div class="bar-container">
+                    <div class="bar-fill thirst-bar" id="thirstBar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="inventory">
+            <div class="inventory-title">📦 Inventori</div>
+            <div id="inventoryList"></div>
+        </div>
+
+        <div class="controls">
+            <div class="controls-title">⌨️ Kontrol</div>
+            <div>WASD - Bergerak</div>
+            <div>Mouse - Lihat sekitar</div>
+            <div>E - Ambil item</div>
+            <div>Angka 1-3 - Gunakan item</div>
+        </div>
+
+        <div class="crosshair"></div>
+        <div class="interact-prompt" id="interactPrompt">Tekan E untuk mengambil</div>
+
+        <div class="message" id="startMessage">
+            <h2>🏝️ SURVIVAL POV</h2>
+            <p>Bertahan hidup di pulau terpencil!</p>
+            <p style="margin-top: 10px; font-size: 14px;">Kumpulkan makanan dan air untuk bertahan</p>
+            <button id="startBtn">MULAI BERMAIN</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Game State
+        const gameState = {
+            health: 100,
+            hunger: 100,
+            thirst: 100,
+            inventory: {
+                food: 0,
+                water: 0,
+                wood: 0
+            },
+            started: false,
+            nearestItem: null
+        };
+
+        // Three.js Setup
+        let scene, camera, renderer;
+        let moveForward = false, moveBackward = false;
+        let moveLeft = false, moveRight = false;
+        let velocity = new THREE.Vector3();
+        let direction = new THREE.Vector3();
+
+        const objects = [];
+        const collectibles = [];
+
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            scene.fog = new THREE.Fog(0x87CEEB, 0, 200);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 1.6, 5);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas'), antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(50, 50, 25);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+
+            // Ground
+            const groundGeometry = new THREE.PlaneGeometry(100, 100);
+            const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+            objects.push(ground);
+
+            // Beach/Sand area
+            const sandGeometry = new THREE.CircleGeometry(30, 32);
+            const sandMaterial = new THREE.MeshLambertMaterial({ color: 0xF4A460 });
+            const sand = new THREE.Mesh(sandGeometry, sandMaterial);
+            sand.rotation.x = -Math.PI / 2;
+            sand.position.y = 0.01;
+            sand.position.x = -20;
+            sand.receiveShadow = true;
+            scene.add(sand);
+
+            // Water
+            const waterGeometry = new THREE.PlaneGeometry(100, 30);
+            const waterMaterial = new THREE.MeshLambertMaterial({ color: 0x1E90FF, transparent: true, opacity: 0.7 });
+            const water = new THREE.Mesh(waterGeometry, waterMaterial);
+            water.rotation.x = -Math.PI / 2;
+            water.position.y = 0.02;
+            water.position.x = -45;
+            scene.add(water);
+
+            // Create Trees
+            for (let i = 0; i < 15; i++) {
+                createTree(
+                    Math.random() * 60 - 30,
+                    Math.random() * 60 - 30
+                );
+            }
+
+            // Create Collectibles
+            createCollectibles();
+
+            // Event Listeners
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+            document.getElementById('startBtn').addEventListener('click', startGame);
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function createTree(x, z) {
+            // Trunk
+            const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.4, 3, 8);
+            const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.position.set(x, 1.5, z);
+            trunk.castShadow = true;
+            trunk.receiveShadow = true;
+            scene.add(trunk);
+            objects.push(trunk);
+
+            // Leaves
+            const leavesGeometry = new THREE.SphereGeometry(2, 8, 8);
+            const leavesMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+            const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
+            leaves.position.set(x, 4, z);
+            leaves.castShadow = true;
+            scene.add(leaves);
+        }
+
+        function createCollectibles() {
+            const items = [
+                { type: 'food', color: 0xFF6347, emoji: '🍎', count: 8 },
+                { type: 'water', color: 0x00BFFF, emoji: '💧', count: 6 },
+                { type: 'wood', color: 0x8B4513, emoji: '🪵', count: 10 }
+            ];
+
+            items.forEach(item => {
+                for (let i = 0; i < item.count; i++) {
+                    const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+                    const material = new THREE.MeshLambertMaterial({ color: item.color });
+                    const mesh = new THREE.Mesh(geometry, material);
+                    
+                    mesh.position.set(
+                        Math.random() * 80 - 40,
+                        0.25,
+                        Math.random() * 80 - 40
+                    );
+                    
+                    mesh.castShadow = true;
+                    mesh.userData = { type: item.type, emoji: item.emoji };
+                    
+                    scene.add(mesh);
+                    collectibles.push(mesh);
+                }
+            });
+        }
+
+        function startGame() {
+            gameState.started = true;
+            document.getElementById('startMessage').style.display = 'none';
+            document.body.requestPointerLock();
+            document.addEventListener('mousemove', onMouseMove);
+        }
+
+        function onMouseMove(event) {
+            if (!gameState.started) return;
+
+            const movementX = event.movementX || 0;
+            const movementY = event.movementY || 0;
+
+            camera.rotation.y -= movementX * 0.002;
+            camera.rotation.x -= movementY * 0.002;
+            camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+        }
+
+        function onKeyDown(event) {
+            switch (event.code) {
+                case 'KeyW': moveForward = true; break;
+                case 'KeyS': moveBackward = true; break;
+                case 'KeyA': moveLeft = true; break;
+                case 'KeyD': moveRight = true; break;
+                case 'KeyE': collectItem(); break;
+                case 'Digit1': useItem('food'); break;
+                case 'Digit2': useItem('water'); break;
+                case 'Digit3': useItem('wood'); break;
+            }
+        }
+
+        function onKeyUp(event) {
+            switch (event.code) {
+                case 'KeyW': moveForward = false; break;
+                case 'KeyS': moveBackward = false; break;
+                case 'KeyA': moveLeft = false; break;
+                case 'KeyD': moveRight = false; break;
+            }
+        }
+
+        function collectItem() {
+            if (gameState.nearestItem) {
+                const type = gameState.nearestItem.userData.type;
+                gameState.inventory[type]++;
+                scene.remove(gameState.nearestItem);
+                collectibles.splice(collectibles.indexOf(gameState.nearestItem), 1);
+                gameState.nearestItem = null;
+                updateInventoryUI();
+            }
+        }
+
+        function useItem(type) {
+            if (gameState.inventory[type] > 0) {
+                gameState.inventory[type]--;
+                
+                if (type === 'food') {
+                    gameState.hunger = Math.min(100, gameState.hunger + 30);
+                } else if (type === 'water') {
+                    gameState.thirst = Math.min(100, gameState.thirst + 40);
+                } else if (type === 'wood') {
+                    gameState.health = Math.min(100, gameState.health + 10);
+                }
+                
+                updateInventoryUI();
+                updateStatsUI();
+            }
+        }
+
+        function updateInventoryUI() {
+            const list = document.getElementById('inventoryList');
+            list.innerHTML = `
+                <div class="item"><span class="item-icon">🍎</span> Makanan: ${gameState.inventory.food}</div>
+                <div class="item"><span class="item-icon">💧</span> Air: ${gameState.inventory.water}</div>
+                <div class="item"><span class="item-icon">🪵</span> Kayu: ${gameState.inventory.wood}</div>
+            `;
+        }
+
+        function updateStatsUI() {
+            document.getElementById('healthBar').style.width = gameState.health + '%';
+            document.getElementById('hungerBar').style.width = gameState.hunger + '%';
+            document.getElementById('thirstBar').style.width = gameState.thirst + '%';
+        }
+
+        function updateSurvival(delta) {
+            if (!gameState.started) return;
+
+            gameState.hunger -= delta * 2;
+            gameState.thirst -= delta * 3;
+
+            if (gameState.hunger < 30 || gameState.thirst < 30) {
+                gameState.health -= delta * 1;
+            }
+
+            gameState.hunger = Math.max(0, gameState.hunger);
+            gameState.thirst = Math.max(0, gameState.thirst);
+            gameState.health = Math.max(0, gameState.health);
+
+            if (gameState.health <= 0) {
+                gameOver();
+            }
+
+            updateStatsUI();
+        }
+
+        function gameOver() {
+            gameState.started = false;
+            const msg = document.getElementById('startMessage');
+            msg.innerHTML = `
+                <h2>💀 GAME OVER</h2>
+                <p>Kamu tidak bertahan hidup!</p>
+                <button id="restartBtn">MAIN LAGI</button>
+            `;
+            msg.style.display = 'block';
+            document.getElementById('restartBtn').addEventListener('click', () => location.reload());
+        }
+
+        function checkNearbyItems() {
+            let nearest = null;
+            let minDist = 3;
+
+            collectibles.forEach(item => {
+                const dist = camera.position.distanceTo(item.position);
+                if (dist < minDist) {
+                    minDist = dist;
+                    nearest = item;
+                }
+            });
+
+            gameState.nearestItem = nearest;
+            const prompt = document.getElementById('interactPrompt');
+            
+            if (nearest) {
+                prompt.style.display = 'block';
+                prompt.textContent = `Tekan E untuk mengambil ${nearest.userData.emoji}`;
+            } else {
+                prompt.style.display = 'none';
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        let prevTime = performance.now();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = performance.now();
+            const delta = (time - prevTime) / 1000;
+
+            if (gameState.started) {
+                // Movement
+                velocity.x -= velocity.x * 10.0 * delta;
+                velocity.z -= velocity.z * 10.0 * delta;
+
+                direction.z = Number(moveForward) - Number(moveBackward);
+                direction.x = Number(moveRight) - Number(moveLeft);
+                direction.normalize();
+
+                if (moveForward || moveBackward) velocity.z -= direction.z * 50.0 * delta;
+                if (moveLeft || moveRight) velocity.x -= direction.x * 50.0 * delta;
+
+                const forward = new THREE.Vector3(0, 0, -1);
+                forward.applyQuaternion(camera.quaternion);
+                forward.y = 0;
+                forward.normalize();
+
+                const right = new THREE.Vector3(1, 0, 0);
+                right.applyQuaternion(camera.quaternion);
+                right.y = 0;
+                right.normalize();
+
+                camera.position.addScaledVector(forward, -velocity.z * delta);
+                camera.position.addScaledVector(right, -velocity.x * delta);
+
+                // Keep camera above ground
+                camera.position.y = 1.6;
+
+                // Boundaries
+                camera.position.x = Math.max(-45, Math.min(45, camera.position.x));
+                camera.position.z = Math.max(-45, Math.min(45, camera.position.z));
+
+                // Update survival stats
+                updateSurvival(delta);
+                
+                // Check nearby items
+                checkNearbyItems();
+            }
+
+            prevTime = time;
+            renderer.render(scene, camera);
+        }
+
+        // Initialize
+        init();
+        updateInventoryUI();
+        animate();
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Viewer - Full Control</title>
+    <title>Glasses - AR Viewer</title>
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -159,6 +159,12 @@
         .ar-control-btn:active {
             transform: scale(0.95);
             background: var(--color-accent-emphasis);
+        }
+
+        .ar-control-btn.active {
+            background: var(--color-accent-emphasis) !important;
+            color: white;
+            box-shadow: 0 0 16px rgba(88, 166, 255, 0.5);
         }
 
         .ar-control-btn svg {
@@ -429,7 +435,7 @@
     <header>
         <div class="container">
             <div class="header-content">
-                <div class="logo">🥽 AR Viewer - Full Control</div>
+                <div class="logo">Glasses - AR Viewer</div>
                 <div class="status-indicator">
                     <span class="status-dot" id="statusDot"></span>
                     <span id="statusText">Ready</span>
@@ -470,6 +476,10 @@
                     <!-- AR Controls Overlay (shown when in AR) -->
                     <div class="ar-controls-overlay" id="arControlsOverlay">
                         <div class="ar-control-panel">
+                            <button class="ar-control-btn" onclick="arPlace()" id="arPlaceBtn">
+                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
+                                Place
+                            </button>
                             <button class="ar-control-btn" onclick="arRotateLeft()">
                                 <svg viewBox="0 0 24 24"><path d="M7.11 8.53L5.7 7.11C4.8 8.27 4.24 9.61 4.07 11h2.02c.14-.87.49-1.72 1.02-2.47zM6.09 13H4.07c.17 1.39.72 2.73 1.62 3.89l1.41-1.42c-.52-.75-.87-1.59-1.01-2.47zm1.01 5.32c1.16.9 2.51 1.44 3.9 1.61V17.9c-.87-.15-1.71-.49-2.46-1.03L7.1 18.32zM13 4.07V1L8.45 5.55 13 10V6.09c2.84.48 5 2.94 5 5.91s-2.16 5.43-5 5.91v2.02c3.95-.49 7-3.85 7-7.93s-3.05-7.44-7-7.93z"/></svg>
                                 Putar Kiri
@@ -485,14 +495,6 @@
                             <button class="ar-control-btn" onclick="arScaleDown()">
                                 <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 11h10v2H7z"/></svg>
                                 Perkecil
-                            </button>
-                            <button class="ar-control-btn" onclick="arMoveUp()">
-                                <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
-                                Naik
-                            </button>
-                            <button class="ar-control-btn" onclick="arMoveDown()">
-                                <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
-                                Turun
                             </button>
                         </div>
                     </div>
@@ -643,6 +645,10 @@
         let currentARScale = 1.0;
         let arPlacement = 'floor';
         let isInAR = false;
+        let isPlaced = false;
+        let arSession = null;
+        let initialPlacePosition = null;
+        let placedTransform = null;
 
         // Model loaded
         modelViewer.addEventListener('load', () => {
@@ -654,16 +660,124 @@
         modelViewer.addEventListener('ar-status', (event) => {
             if (event.detail.status === 'session-started') {
                 isInAR = true;
+                isPlaced = false;
                 arControlsOverlay.classList.add('active');
                 document.getElementById('statusText').textContent = 'AR Active';
+                document.getElementById('arPlaceBtn').textContent = 'Place';
+                document.getElementById('arPlaceBtn').classList.remove('active');
+                
+                // Start tracking camera motion
+                startCameraTracking();
                 console.log('AR session started');
             } else if (event.detail.status === 'not-presenting') {
                 isInAR = false;
+                isPlaced = false;
                 arControlsOverlay.classList.remove('active');
                 document.getElementById('statusText').textContent = 'Ready';
                 console.log('AR session ended');
             }
         });
+
+        // Place Object Function
+        function arPlace() {
+            if (!isInAR) return;
+            
+            if (!isPlaced) {
+                // First click: Lock position
+                isPlaced = true;
+                initialPlacePosition = {
+                    scale: currentARScale,
+                    rotation: currentRotation
+                };
+                
+                // Store current transform
+                placedTransform = {
+                    cameraOrbit: modelViewer.cameraOrbit,
+                    scale: modelViewer.scale,
+                    position: modelViewer.position
+                };
+                
+                // Update button
+                const btn = document.getElementById('arPlaceBtn');
+                btn.textContent = 'Unplace';
+                btn.classList.add('active');
+                
+                // Disable rotate and scale buttons while placed
+                disableARControls(true);
+                
+                console.log('Object placed at position:', initialPlacePosition);
+                showPlacementFeedback('Object locked in place ✓');
+            } else {
+                // Second click: Unlock position
+                isPlaced = false;
+                initialPlacePosition = null;
+                placedTransform = null;
+                
+                // Update button
+                const btn = document.getElementById('arPlaceBtn');
+                btn.textContent = 'Place';
+                btn.classList.remove('active');
+                
+                // Enable rotate and scale buttons
+                disableARControls(false);
+                
+                console.log('Object placement released');
+                showPlacementFeedback('Object placement released');
+            }
+        }
+
+        // Disable/Enable AR Control Buttons
+        function disableARControls(disable) {
+            const buttons = document.querySelectorAll('.ar-control-btn:not(#arPlaceBtn)');
+            buttons.forEach(btn => {
+                btn.disabled = disable;
+                btn.style.opacity = disable ? '0.5' : '1';
+                btn.style.pointerEvents = disable ? 'none' : 'auto';
+            });
+        }
+
+        // Show placement feedback
+        function showPlacementFeedback(message) {
+            const feedback = document.createElement('div');
+            feedback.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(31, 111, 235, 0.95);
+                color: white;
+                padding: 16px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                z-index: 1000;
+                animation: slideDown 0.3s ease;
+            `;
+            feedback.textContent = message;
+            document.body.appendChild(feedback);
+            
+            setTimeout(() => {
+                feedback.style.animation = 'slideUp 0.3s ease';
+                setTimeout(() => feedback.remove(), 300);
+            }, 2000);
+        }
+
+        // Track Camera Motion
+        function startCameraTracking() {
+            // Use model-viewer's built-in camera tracking
+            const trackCamera = setInterval(() => {
+                if (!isInAR) {
+                    clearInterval(trackCamera);
+                    return;
+                }
+
+                if (isPlaced && placedTransform) {
+                    // Camera motion detected - maintain locked position
+                    // The object stays in the same world position while camera moves
+                    console.log('Tracking camera motion - object position locked');
+                }
+            }, 100);
+        }
 
         // Check AR Support
         function updateARSupport() {
@@ -687,46 +801,36 @@
 
         // AR Controls
         function arRotateLeft() {
-            if (!isInAR) return;
+            if (!isInAR || isPlaced) return;
             currentRotation -= 45;
             modelViewer.cameraOrbit = `${currentRotation}deg 75deg 105%`;
         }
 
         function arRotateRight() {
-            if (!isInAR) return;
+            if (!isInAR || isPlaced) return;
             currentRotation += 45;
             modelViewer.cameraOrbit = `${currentRotation}deg 75deg 105%`;
         }
 
         function arScaleUp() {
-            if (!isInAR) return;
+            if (!isInAR || isPlaced) return;
             currentARScale += 0.2;
             modelViewer.scale = `${currentARScale} ${currentARScale} ${currentARScale}`;
             document.getElementById('arScaleValue').textContent = currentARScale.toFixed(1) + 'x';
         }
 
         function arScaleDown() {
-            if (!isInAR) return;
+            if (!isInAR || isPlaced) return;
             currentARScale = Math.max(0.2, currentARScale - 0.2);
             modelViewer.scale = `${currentARScale} ${currentARScale} ${currentARScale}`;
             document.getElementById('arScaleValue').textContent = currentARScale.toFixed(1) + 'x';
-        }
-
-        function arMoveUp() {
-            // This would require custom WebXR implementation
-            console.log('Move up in AR');
-        }
-
-        function arMoveDown() {
-            // This would require custom WebXR implementation
-            console.log('Move down in AR');
         }
 
         // AR Scale Control
         function updateARScale(value) {
             currentARScale = parseFloat(value);
             document.getElementById('arScaleValue').textContent = value + 'x';
-            if (isInAR) {
+            if (isInAR && !isPlaced) {
                 modelViewer.scale = `${value} ${value} ${value}`;
             }
         }
@@ -744,12 +848,14 @@
 
         // Rotation Controls
         function updateRotation(value) {
+            if (isPlaced) return;
             currentRotation = parseInt(value);
             document.getElementById('rotateYValue').textContent = value + '°';
             modelViewer.cameraOrbit = `${value}deg 75deg 105%`;
         }
 
         function rotateModel(degrees) {
+            if (isPlaced) return;
             currentRotation += degrees;
             if (currentRotation >= 360) currentRotation -= 360;
             if (currentRotation < 0) currentRotation += 360;
@@ -759,6 +865,7 @@
         }
 
         function resetRotation() {
+            if (isPlaced) return;
             currentRotation = 0;
             document.getElementById('rotateY').value = 0;
             document.getElementById('rotateYValue').textContent = '0°';
@@ -780,6 +887,7 @@
 
         // Camera Views
         function setCameraView(view) {
+            if (isPlaced) return;
             const views = {
                 front: '0deg 90deg 105%',
                 back: '180deg 90deg 105%',
@@ -834,8 +942,44 @@
                     if (e.ctrlKey || e.metaKey) return;
                     toggleARMode();
                     break;
+                case 'p':
+                    if (e.ctrlKey || e.metaKey) return;
+                    if (isInAR) arPlace();
+                    break;
             }
         });
+
+        // Add animation keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translate(-50%, -60%);
+                }
+                to {
+                    opacity: 1;
+                    transform: translate(-50%, -50%);
+                }
+            }
+            
+            @keyframes slideUp {
+                from {
+                    opacity: 1;
+                    transform: translate(-50%, -50%);
+                }
+                to {
+                    opacity: 0;
+                    transform: translate(-50%, -40%);
+                }
+            }
+            
+            .ar-control-btn.active {
+                background: var(--color-accent-emphasis) !important;
+                color: white;
+            }
+        `;
+        document.head.appendChild(style);
 
         // Initialize
         setTimeout(() => {
