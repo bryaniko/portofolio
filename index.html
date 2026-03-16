@@ -3,7 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <meta name="google-site-verification" content="Gnvt3EtOaRMrK8NZk_N6dq6a21OfcYssSxhL8rRtVPI" />
+=======
+    <meta name="description" content="Welcome to my GitHub profile! I'm a passionate game developer and 3D artist specializing in creating immersive gaming experiences. Explore my repositories to see my latest projects, including game prototypes, 3D models, and interactive demos. Feel free to connect with me for collaborations or just to chat about game development and art!">
+    <meta name="keywords" content="Game Developer, 3D Artist, Game Design, Unity, Unreal Engine, Blender, GitHub Profile, Game Prototypes, 3D Models, Interactive Demos">
+    <meta name="author" content="Bryaniko">
+    <meta property="og:title" content="bryaniko - Game Developer & 3D Artist">
+    <meta property="og:description" content="Welcome to my GitHub profile! I'm a passionate game developer and 3D artist specializing in creating immersive gaming experiences. Explore my repositories to see my latest projects, including game prototypes, 3D models, and interactive demos. Feel free to connect with me for collaborations or just to chat about game development and art!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://github.com/bryaniko">
+>>>>>>> 11dc030 (update README & index)
     <title>bryaniko - Game Developer & 3D Artist</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -40,6 +50,72 @@
             font-size: 14px;
             position: relative;
             overflow-x: hidden;
+        }
+
+        /* ===== LOADING ANIMATION ===== */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--color-canvas-default);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        #loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 3px solid var(--color-border-muted);
+            border-top: 3px solid var(--color-accent-fg);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--color-fg-default);
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 2px;
+        }
+
+        .loading-progress {
+            width: 200px;
+            height: 4px;
+            background: var(--color-border-muted);
+            border-radius: 2px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .loading-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-accent-fg), var(--color-done-fg));
+            border-radius: 2px;
+            animation: loading 2s ease-in-out infinite;
+        }
+
+        @keyframes loading {
+            0% { width: 0%; margin-left: 0%; }
+            50% { width: 60%; margin-left: 20%; }
+            100% { width: 0%; margin-left: 100%; }
         }
 
         /* ===== STARFALL BACKGROUND ===== */
@@ -415,12 +491,28 @@
         overflow: hidden;
         will-change: transform, box-shadow;
         
+        /* Initial entrance animation */
+        opacity: 0;
+        animation: cardFadeInUp 0.6s ease-out forwards;
+        
         transition:
             background-color  0.45s cubic-bezier(0.22, 1, 0.36, 1),
             border-color      0.45s cubic-bezier(0.22, 1, 0.36, 1),
             box-shadow        0.45s cubic-bezier(0.22, 1, 0.36, 1),
             transform         0.40s cubic-bezier(0.34, 1.56, 0.64, 1),
             padding-left      0.40s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* Card entrance animation - smooth ease-out */
+    @keyframes cardFadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(25px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
         /* Shimmer sweep – travels left→right on hover */
@@ -633,7 +725,22 @@
             position: relative;
             display: grid;
             grid-template-columns: 320px 1fr;
+            grid-template-rows: auto;
             backdrop-filter: blur(12px);
+        }
+
+        .music-section .playlist-sidebar {
+            grid-column: 1;
+            grid-row: 1;
+            height: auto;
+            min-height: 500px;
+            z-index: 2;
+        }
+
+        .music-section .music-player {
+            grid-column: 2;
+            grid-row: 1;
+            z-index: 1;
         }
 
         .music-section::before {
@@ -660,6 +767,7 @@
             overflow-y: auto;
             position: relative;
             z-index: 2;
+            min-width: 320px;
         }
 
         .playlist-sidebar::-webkit-scrollbar { width: 6px; }
@@ -730,6 +838,7 @@
             padding: 32px;
             position: relative;
             z-index: 1;
+            min-width: 0;
         }
 
         .song-info { flex: 1; display: flex; flex-direction: column; gap: 12px; }
@@ -868,6 +977,8 @@
             justify-content: center;
             gap: 12px;
             flex-wrap: wrap;
+            width: 100%;
+            padding: 8px 0;
         }
 
         .control-button {
@@ -965,10 +1076,13 @@
             .pinned-repos { grid-template-columns: 1fr; }
             .container { padding: 0 16px; }
             .header-nav { display: none; }
-            .music-section { grid-template-columns: 1fr; }
+            .music-section { grid-template-columns: 1fr; grid-template-rows: auto auto; }
+            .music-section .playlist-sidebar { grid-column: 1; grid-row: 1; min-height: 200px; }
+            .music-section .music-player { grid-column: 1; grid-row: 2; }
             .vinyl-record { width: 140px; height: 140px; }
             .vinyl-center { width: 60px; height: 60px; }
             .song-title { font-size: 20px; }
+            .playback-controls { justify-content: center; flex-wrap: wrap; }
         }
 
         ::-webkit-scrollbar { width: 12px; }
@@ -978,6 +1092,15 @@
     </style>
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="loader"></div>
+        <div class="loading-text">LOADING</div>
+        <div class="loading-progress">
+            <div class="loading-progress-bar"></div>
+        </div>
+    </div>
+
     <!-- Gradient Background -->
     <div id="gradient-bg"></div>
 
@@ -1205,31 +1328,43 @@
                         </div>
 
                         <div class="repositories-list">
-                            <div class="repo-card">
+                            <div class="repo-card" style="animation-delay: 0.1s;">
                                 <div class="repo-header"><div class="repo-icon"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg></div><div><div><a href="#" class="repo-title">fps-multiplayer-shooter</a><span class="repo-visibility">Public</span></div></div></div>
                                 <p class="repo-description">Competitive first-person shooter dengan network synchronization menggunakan Photon. Includes custom weapon models dan realistic physics.</p>
                                 <div class="repo-meta"><div class="repo-meta-item"><span class="language-color" style="background-color: #178600;"></span><span>C#</span></div><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25zm0 2.445L6.615 5.5a.75.75 0 01-.564.41l-3.097.45 2.24 2.184a.75.75 0 01.216.664l-.528 3.084 2.769-1.456a.75.75 0 01.698 0l2.77 1.456-.53-3.084a.75.75 0 01.216-.664l2.24-2.183-3.096-.45a.75.75 0 01-.564-.41L8 2.694v.001z"></path></svg><span>28</span></a><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878zm3.75 7.378a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm3-8.75a.75.75 0 100-1.5.75.75 0 000 1.5z"></path></svg><span>7</span></a><span style="color: var(--color-fg-muted); font-size: 12px;">Updated 2 days ago</span></div>
                             </div>
 
-                            <div class="repo-card">
+                            <div class="repo-card" style="animation-delay: 0.2s;">
                                 <div class="repo-header"><div class="repo-icon"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg></div><div><div><a href="#" class="repo-title">procedural-terrain-generator</a><span class="repo-visibility">Public</span></div></div></div>
                                 <p class="repo-description">Real-time procedural terrain generation dengan Perlin noise. Includes biome system, LOD optimization, dan custom vegetation placement.</p>
                                 <div class="repo-meta"><div class="repo-meta-item"><span class="language-color" style="background-color: #178600;"></span><span>C#</span></div><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25zm0 2.445L6.615 5.5a.75.75 0 01-.564.41l-3.097.45 2.24 2.184a.75.75 0 01.216.664l-.528 3.084 2.769-1.456a.75.75 0 01.698 0l2.77 1.456-.53-3.084a.75.75 0 01.216-.664l2.24-2.183-3.096-.45a.75.75 0 01-.564-.41L8 2.694v.001z"></path></svg><span>22</span></a><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878zm3.75 7.378a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm3-8.75a.75.75 0 100-1.5.75.75 0 000 1.5z"></path></svg><span>9</span></a><span style="color: var(--color-fg-muted); font-size: 12px;">Updated 5 days ago</span></div>
                             </div>
 
-                            <div class="repo-card">
+                            <div class="repo-card" style="animation-delay: 0.3s;">
                                 <div class="repo-header"><div class="repo-icon"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg></div><div><div><a href="#" class="repo-title">ai-npc-behavior-system</a><span class="repo-visibility">Public</span></div></div></div>
                                 <p class="repo-description">Advanced AI behavior system dengan state machines dan decision trees. NPCs dapat patrol, chase, dan interact dengan dynamic environment.</p>
                                 <div class="repo-meta"><div class="repo-meta-item"><span class="language-color" style="background-color: #178600;"></span><span>C#</span></div><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25zm0 2.445L6.615 5.5a.75.75 0 01-.564.41l-3.097.45 2.24 2.184a.75.75 0 01.216.664l-.528 3.084 2.769-1.456a.75.75 0 01.698 0l2.77 1.456-.53-3.084a.75.75 0 01.216-.664l2.24-2.183-3.096-.45a.75.75 0 01-.564-.41L8 2.694v.001z"></path></svg><span>19</span></a><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878zm3.75 7.378a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm3-8.75a.75.75 0 100-1.5.75.75 0 000 1.5z"></path></svg><span>4</span></a><span style="color: var(--color-fg-muted); font-size: 12px;">Updated 1 week ago</span></div>
                             </div>
 
-                            <div class="repo-card">
+                            <div class="repo-card" style="animation-delay: 0.4s;">
                                 <div class="repo-header"><div class="repo-icon"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg></div><div><div><a href="#" class="repo-title">vr-interaction-toolkit</a><span class="repo-visibility">Public</span></div></div></div>
                                 <p class="repo-description">Complete VR interaction system untuk Unity XR. Hand tracking, object grabbing, UI interaction, dan teleportation mechanics.</p>
                                 <div class="repo-meta"><div class="repo-meta-item"><span class="language-color" style="background-color: #178600;"></span><span>C#</span></div><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25zm0 2.445L6.615 5.5a.75.75 0 01-.564.41l-3.097.45 2.24 2.184a.75.75 0 01.216.664l-.528 3.084 2.769-1.456a.75.75 0 01.698 0l2.77 1.456-.53-3.084a.75.75 0 01.216-.664l2.24-2.183-3.096-.45a.75.75 0 01-.564-.41L8 2.694v.001z"></path></svg><span>35</span></a><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878zm3.75 7.378a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm3-8.75a.75.75 0 100-1.5.75.75 0 000 1.5z"></path></svg><span>11</span></a><span style="color: var(--color-fg-muted); font-size: 12px;">Updated 2 weeks ago</span></div>
                             </div>
 
-                            <div class="repo-card">
+                                                        <div class="repo-card" style="animation-delay: 0.5s;">
+                                <div class="repo-header"><div class="repo-icon"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg></div><div><div><a href="#" class="repo-title">vr-interaction-toolkit</a><span class="repo-visibility">Public</span></div></div></div>
+                                <p class="repo-description">Complete VR interaction system untuk Unity XR. Hand tracking, object grabbing, UI interaction, dan teleportation mechanics.</p>
+                                <div class="repo-meta"><div class="repo-meta-item"><span class="language-color" style="background-color: #178600;"></span><span>C#</span></div><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25zm0 2.445L6.615 5.5a.75.75 0 01-.564.41l-3.097.45 2.24 2.184a.75.75 0 01.216.664l-.528 3.084 2.769-1.456a.75.75 0 01.698 0l2.77 1.456-.53-3.084a.75.75 0 01.216-.664l2.24-2.183-3.096-.45a.75.75 0 01-.564-.41L8 2.694v.001z"></path></svg><span>35</span></a><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878zm3.75 7.378a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm3-8.75a.75.75 0 100-1.5.75.75 0 000 1.5z"></path></svg><span>11</span></a><span style="color: var(--color-fg-muted); font-size: 12px;">Updated 2 weeks ago</span></div>
+                            </div>
+
+                                                        <div class="repo-card" style="animation-delay: 0.6s;">
+                                <div class="repo-header"><div class="repo-icon"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg></div><div><div><a href="#" class="repo-title">vr-interaction-toolkit</a><span class="repo-visibility">Public</span></div></div></div>
+                                <p class="repo-description">Complete VR interaction system untuk Unity XR. Hand tracking, object grabbing, UI interaction, dan teleportation mechanics.</p>
+                                <div class="repo-meta"><div class="repo-meta-item"><span class="language-color" style="background-color: #178600;"></span><span>C#</span></div><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25zm0 2.445L6.615 5.5a.75.75 0 01-.564.41l-3.097.45 2.24 2.184a.75.75 0 01.216.664l-.528 3.084 2.769-1.456a.75.75 0 01.698 0l2.77 1.456-.53-3.084a.75.75 0 01.216-.664l2.24-2.183-3.096-.45a.75.75 0 01-.564-.41L8 2.694v.001z"></path></svg><span>35</span></a><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878zm3.75 7.378a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm3-8.75a.75.75 0 100-1.5.75.75 0 000 1.5z"></path></svg><span>11</span></a><span style="color: var(--color-fg-muted); font-size: 12px;">Updated 2 weeks ago</span></div>
+                            </div>
+
+                            <div class="repo-card" style="animation-delay: 0.7s;">
                                 <div class="repo-header"><div class="repo-icon"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg></div><div><div><a href="#" class="repo-title">environment-shader-library</a><span class="repo-visibility">Public</span></div></div></div>
                                 <p class="repo-description">Collection of custom shaders untuk environment rendering. Termasuk water, foliage, dan terrain shaders untuk Unity dan Unreal.</p>
                                 <div class="repo-meta"><div class="repo-meta-item"><span class="language-color" style="background-color: #ff6347;"></span><span>HLSL</span></div><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25zm0 2.445L6.615 5.5a.75.75 0 01-.564.41l-3.097.45 2.24 2.184a.75.75 0 01.216.664l-.528 3.084 2.769-1.456a.75.75 0 01.698 0l2.77 1.456-.53-3.084a.75.75 0 01.216-.664l2.24-2.183-3.096-.45a.75.75 0 01-.564-.41L8 2.694v.001z"></path></svg><span>31</span></a><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878zm3.75 7.378a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm3-8.75a.75.75 0 100-1.5.75.75 0 000 1.5z"></path></svg><span>12</span></a><span style="color: var(--color-fg-muted); font-size: 12px;">Updated last week</span></div>
@@ -1783,6 +1918,17 @@
                 document.body.innerHTML = '';
             }
         }, 1000);
+
+        // ===== HIDE LOADING ANIMATION WHEN PAGE LOADS =====
+        window.addEventListener('load', function() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            loadingOverlay.classList.add('hidden');
+            
+            // Remove from DOM after transition completes
+            setTimeout(function() {
+                loadingOverlay.style.display = 'none';
+            }, 500);
+        });
     </script>
 </body>
 </html>
