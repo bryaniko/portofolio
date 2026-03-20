@@ -81,7 +81,7 @@ Website ini adalah portfolio personal yang menampilkan karya-karya dan proyek-pr
 
 - **GitHub**: [https://github.com/bryaniko](https://github.com/bryaniko/)
 - **Twitter**: [https://www.instagram.com/xxreyzen/](https://www.instagram.com/xxreyzen/)
-- **Email**: [email@protected]
+- **Email**: [bryanikorismaputra@gmail.com]
 
 ---
 
