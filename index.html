@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< HEAD
     <meta name="google-site-verification" content="Gnvt3EtOaRMrK8NZk_N6dq6a21OfcYssSxhL8rRtVPI" />
-=======
     <meta name="description" content="Welcome to my GitHub profile! I'm a passionate game developer and 3D artist specializing in creating immersive gaming experiences. Explore my repositories to see my latest projects, including game prototypes, 3D models, and interactive demos. Feel free to connect with me for collaborations or just to chat about game development and art!">
     <meta name="keywords" content="Game Developer, 3D Artist, Game Design, Unity, Unreal Engine, Blender, GitHub Profile, Game Prototypes, 3D Models, Interactive Demos">
     <meta name="author" content="Bryaniko">
     <meta property="og:title" content="bryaniko - Game Developer & 3D Artist">
     <meta property="og:description" content="Welcome to my GitHub profile! I'm a passionate game developer and 3D artist specializing in creating immersive gaming experiences. Explore my repositories to see my latest projects, including game prototypes, 3D models, and interactive demos. Feel free to connect with me for collaborations or just to chat about game development and art!">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://github.com/bryaniko">
->>>>>>> 11dc030 (update README & index)
+    <meta property="og:url" content="https://bryaniko.github.io/portofolio/">
     <title>bryaniko - Game Developer & 3D Artist</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -24,15 +21,22 @@
             scrollbar-width: none;
         }
 
+        /* =====================================================
+           ZOOM FIX: backdrop-filter completely removed.
+           backdrop-filter: blur() is the root cause of
+           white/black screens at non-100% browser zoom levels.
+           Replaced with solid semi-transparent backgrounds.
+           ===================================================== */
+
         :root {
             --color-canvas-default: #0d1117;
             --color-canvas-subtle: #161b22;
             --color-canvas-inset: #010409;
-            --color-border-default: #30363d;
+            --color-border-default: #444d57;
             --color-border-muted: #21262d;
             --color-fg-default: #c9d1d9;
             --color-fg-muted: #8b949e;
-            --color-fg-subtle: #6e7681;
+            --color-fg-subtle: #96b7c3;
             --color-accent-fg: #58a6ff;
             --color-accent-emphasis: #1f6feb;
             --color-success-fg: #3fb950;
@@ -50,6 +54,8 @@
             font-size: 14px;
             position: relative;
             overflow-x: hidden;
+            margin: 0;
+            padding: 0;
         }
 
         /* ===== LOADING ANIMATION ===== */
@@ -127,9 +133,10 @@
             height: 100%;
             z-index: 0;
             pointer-events: none;
+            margin: 0;
         }
 
-        /* Gradient Background Overlay - 100% Static, no animation */
+        /* Gradient Background Overlay */
         #gradient-bg {
             position: fixed;
             top: 0;
@@ -138,6 +145,8 @@
             height: 100%;
             z-index: 0;
             pointer-events: none;
+            margin: 0;
+            padding: 0;
             background: 
                 radial-gradient(ellipse at 5% 5%,   rgba(31, 111, 235, 0.20) 0%, transparent 50%),
                 radial-gradient(ellipse at 95% 5%,  rgba(163, 113, 247, 0.16) 0%, transparent 48%),
@@ -154,6 +163,8 @@
             z-index: 0;
             pointer-events: none;
             overflow: hidden;
+            margin: 0;
+            padding: 0;
         }
 
         .star-dot {
@@ -179,6 +190,7 @@
             max-width: 1280px;
             margin: 0 auto;
             padding: 0 32px;
+            width: 100%;
         }
 
         /* Animations */
@@ -209,14 +221,19 @@
 
         /* GitHub Header */
         header {
-            background-color: rgba(22, 27, 34, 0.75);
+            /* ZOOM FIX: was rgba(22,27,34,0.95) + backdrop-filter blur(14px)
+               backdrop-filter causes white/black screen on zoom. Use opaque bg instead. */
+            background-color: rgba(13, 17, 23, 0.98);
             border-bottom: 1px solid var(--color-border-default);
-            padding: 16px 0;
+            padding: 12px 0;
+            margin: 0;
             position: sticky;
             top: 0;
             z-index: 100;
-            backdrop-filter: blur(14px);
             animation: fadeIn 0.5s ease-out;
+            width: 100%;
+            left: 0;
+            right: 0;
         }
 
         .header-content {
@@ -293,7 +310,7 @@
             aspect-ratio: 1;
             border-radius: 50%;
             border: 3px solid var(--color-border-default);
-            background-color: rgba(22, 27, 34, 0.75);
+            background-color: rgba(22, 27, 34, 0.92);
             background-size: cover;
             background-position: center;
             display: flex;
@@ -472,50 +489,34 @@
         .pagination button:disabled { opacity: 0.5; cursor: default; }
 
         .repo-card {
-        /* --- EFEK GLASSMORPHISM --- */
-        background-color: rgba(22, 27, 34, 0.75); /* Putih tipis (sesuaikan 0.05 - 0.1) */
-        backdrop-filter: blur(12px); 
-        -webkit-backdrop-filter: blur(12px);
-        
-        /* Border semi-transparan (highlight di pinggiran) */
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2); 
-        
-        /* Shadow halus agar card terlihat "mengambang" */
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        /* -------------------------- */
+            /* ZOOM FIX: backdrop-filter removed. Use more opaque solid background. */
+            background-color: rgba(22, 27, 34, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 
-        padding: 20px 18px 22px 18px;
-        border-radius: 10px;
-        position: relative;
-        overflow: hidden;
-        will-change: transform, box-shadow;
-        
-        /* Initial entrance animation */
-        opacity: 0;
-        animation: cardFadeInUp 0.6s ease-out forwards;
-        
-        transition:
-            background-color  0.45s cubic-bezier(0.22, 1, 0.36, 1),
-            border-color      0.45s cubic-bezier(0.22, 1, 0.36, 1),
-            box-shadow        0.45s cubic-bezier(0.22, 1, 0.36, 1),
-            transform         0.40s cubic-bezier(0.34, 1.56, 0.64, 1),
-            padding-left      0.40s cubic-bezier(0.22, 1, 0.36, 1);
-    }
+            padding: 20px 18px 22px 18px;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            will-change: transform, box-shadow;
 
-    /* Card entrance animation - smooth ease-out */
-    @keyframes cardFadeInUp {
-        from {
             opacity: 0;
-            transform: translateY(25px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
+            animation: cardFadeInUp 0.6s ease-out forwards;
 
-        /* Shimmer sweep – travels left→right on hover */
+            transition:
+                background-color  0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                border-color      0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow        0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                transform         0.40s cubic-bezier(0.34, 1.56, 0.64, 1),
+                padding-left      0.40s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes cardFadeInUp {
+            from { opacity: 0; transform: translateY(25px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
         .repo-card::after {
             content: '';
             position: absolute;
@@ -533,7 +534,6 @@
             border-radius: 10px;
         }
 
-        /* Left accent bar – grows from center */
         .repo-card::before {
             content: '';
             position: absolute;
@@ -552,7 +552,7 @@
         }
 
         .repo-card:hover {
-            background-color: rgba(88, 166, 255, 0.038);
+            background-color: rgba(88, 166, 255, 0.06);
             border-color: rgba(88, 166, 255, 0.22);
             border-bottom-color: rgba(88, 166, 255, 0.22);
             box-shadow:
@@ -566,17 +566,8 @@
         .repo-card:hover::before  { height: 72%; }
         .repo-card:hover::after   { transform: translateX(110%); }
 
-        /* Inner elements animate on card hover */
-        .repo-card:hover .repo-icon svg {
-            fill: var(--color-accent-fg);
-            transition: fill 0.3s ease;
-        }
-
-        .repo-card:hover .repo-description {
-            color: rgba(201, 209, 217, 0.85);
-            transition: color 0.35s ease;
-        }
-
+        .repo-card:hover .repo-icon svg { fill: var(--color-accent-fg); transition: fill 0.3s ease; }
+        .repo-card:hover .repo-description { color: rgba(201, 209, 217, 0.85); transition: color 0.35s ease; }
         .repo-card:hover .language-color {
             transform: scale(1.25);
             box-shadow: 0 0 6px currentColor;
@@ -671,8 +662,7 @@
             height: 12px;
             border-radius: 50%;
             display: inline-block;
-            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        box-shadow 0.35s ease;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease;
         }
 
         .repo-stats {
@@ -707,16 +697,13 @@
             transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        .repo-stats:hover svg {
-            transform: rotate(12deg) scale(1.15);
-        }
-
         .repo-stats:hover svg { transform: rotate(12deg) scale(1.2); }
 
         /* Music Section */
         .music-section {
             margin-top: 24px;
-            background: linear-gradient(135deg, rgba(22,27,34,0.85) 0%, rgba(1,4,9,0.9) 100%);
+            /* ZOOM FIX: backdrop-filter removed */
+            background: linear-gradient(135deg, rgba(22,27,34,0.97) 0%, rgba(1,4,9,0.98) 100%);
             border: 1px solid var(--color-border-default);
             border-radius: 12px;
             animation: scaleIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.6s both;
@@ -726,7 +713,6 @@
             display: grid;
             grid-template-columns: 320px 1fr;
             grid-template-rows: auto;
-            backdrop-filter: blur(12px);
         }
 
         .music-section .playlist-sidebar {
@@ -759,7 +745,7 @@
         .playlist-sidebar {
             border-right: 1px solid var(--color-border-default);
             padding: 20px;
-            background: rgba(1,4,9,0.7);
+            background: rgba(1,4,9,0.85);
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -982,7 +968,7 @@
         }
 
         .control-button {
-            background: rgba(13,17,23,0.8);
+            background: rgba(13,17,23,0.95);
             border: 1px solid var(--color-border-default);
             color: var(--color-fg-default);
             padding: 10px 16px;
@@ -994,7 +980,6 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            backdrop-filter: blur(4px);
         }
 
         .control-button:hover {
@@ -1022,7 +1007,8 @@
             border: 1px solid var(--color-border-default);
             border-radius: 8px;
             padding: 16px;
-            background-color: rgba(22,27,34,0.75);
+            /* ZOOM FIX: backdrop-filter removed, more opaque background */
+            background-color: rgba(22,27,34,0.94);
             transition:
                 transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
                 border-color 0.3s ease,
@@ -1030,8 +1016,15 @@
                 background 0.3s ease;
             position: relative;
             overflow: hidden;
-            backdrop-filter: blur(8px);
+
+            opacity: 0;
+            animation: cardFadeInUp 0.6s ease-out forwards;
         }
+
+        .pinned-repo-card:nth-child(1) { animation-delay: 0.1s; }
+        .pinned-repo-card:nth-child(2) { animation-delay: 0.2s; }
+        .pinned-repo-card:nth-child(3) { animation-delay: 0.3s; }
+        .pinned-repo-card:nth-child(4) { animation-delay: 0.4s; }
 
         .pinned-repo-card::before {
             content: '';
@@ -1044,7 +1037,6 @@
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Bottom glow line */
         .pinned-repo-card::after {
             content: '';
             position: absolute;
@@ -1061,7 +1053,7 @@
             box-shadow:
                 0 12px 32px rgba(88, 166, 255, 0.12),
                 0 4px 12px rgba(0,0,0,0.3);
-            background-color: rgba(22,27,34,0.9);
+            background-color: rgba(30,38,50,0.97);
         }
 
         .pinned-repo-card:hover::before { transform: scaleX(1); }
@@ -1145,7 +1137,7 @@
                             </div>
                             <div class="profile-detail" style="--delay: 0.1s">
                                 <svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.75 2A1.75 1.75 0 000 3.75v.736a.75.75 0 000 .027v7.737C0 13.216.784 14 1.75 14h12.5A1.75 1.75 0 0016 12.25v-8.5A1.75 1.75 0 0014.25 2H1.75zM14.5 4.07v-.32a.25.25 0 00-.25-.25H1.75a.25.25 0 00-.25.25v.32L8 7.88l6.5-3.81zm-13 1.74v6.441c0 .138.112.25.25.25h12.5a.25.25 0 00.25-.25V5.809L8.38 9.397a.75.75 0 01-.76 0L1.5 5.809z"></path></svg>
-                                <a href="/cdn-cgi/l/email-protection#d3b1a1aab2bdbab8bca1baa0beb2a3a6a7a1b293b4beb2babffdb0bcbe" style="color: var(--color-fg-muted); text-decoration: none;"><span class="__cf_email__" data-cfemail="01637378606f686a6e7368726c60717475736041666c60686d2f626e6c">[email&#160;protected]</span></a>
+                                <a href="mailto:bryaniko@example.com" style="color: var(--color-fg-muted); text-decoration: none;">bryaniko@example.com</a>
                             </div>
                             <div class="profile-detail" style="--delay: 0.2s">
                                 <svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
@@ -1162,7 +1154,8 @@
                             <h2 style="font-size: 24px; font-weight: 600; margin-bottom: 16px; color: var(--color-fg-default); display: flex; align-items: center; gap: 8px;">
                                 Hello, I'm Bryan Iko R!
                             </h2>
-                            <div class="introduction-content" style="background-color: rgba(22, 27, 34, 0.75);; border: 1px solid var(--color-border-default); border-radius: 8px; padding: 24px; position: relative; overflow: hidden; backdrop-filter: blur(8px);">
+                            <!-- ZOOM FIX: backdrop-filter removed from inline style -->
+                            <div class="introduction-content" style="background-color: rgba(22, 27, 34, 0.94); border: 1px solid var(--color-border-default); border-radius: 8px; padding: 24px; position: relative; overflow: hidden;">
                                 <div style="position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--color-accent-fg), var(--color-done-fg));"></div>
                                 <p style="font-size: 16px; line-height: 1.6; color: var(--color-fg-default); margin-bottom: 16px;">
                                     Welcome to my digital portfolio! I'm a passionate <strong style="color: var(--color-accent-fg);">Game Developer & 3D Artist</strong> with over 5 years of experience crafting immersive gaming experiences and stunning visual content.
@@ -1234,7 +1227,7 @@
                             <div class="pinned-repo-card">
                                 <div class="repo-header">
                                     <div class="repo-icon"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg></div>
-                                    <div style="flex: 1;"><a href="#" class="repo-title">mobile-puzzle-game</a><span class="repo-visibility">Public</span></div>
+                                    <div style="flex: 1;"><a href="long-cat/index.html" class="repo-title">long-cat</a><span class="repo-visibility">Public</span></div>
                                 </div>
                                 <p class="repo-description">Casual puzzle game untuk mobile dengan minimalist design. Developed menggunakan Unity.</p>
                                 <div class="repo-meta">
@@ -1352,19 +1345,13 @@
                                 <div class="repo-meta"><div class="repo-meta-item"><span class="language-color" style="background-color: #178600;"></span><span>C#</span></div><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25zm0 2.445L6.615 5.5a.75.75 0 01-.564.41l-3.097.45 2.24 2.184a.75.75 0 01.216.664l-.528 3.084 2.769-1.456a.75.75 0 01.698 0l2.77 1.456-.53-3.084a.75.75 0 01.216-.664l2.24-2.183-3.096-.45a.75.75 0 01-.564-.41L8 2.694v.001z"></path></svg><span>35</span></a><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878zm3.75 7.378a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm3-8.75a.75.75 0 100-1.5.75.75 0 000 1.5z"></path></svg><span>11</span></a><span style="color: var(--color-fg-muted); font-size: 12px;">Updated 2 weeks ago</span></div>
                             </div>
 
-                                                        <div class="repo-card" style="animation-delay: 0.5s;">
+                            <div class="repo-card" style="animation-delay: 0.4s;">
                                 <div class="repo-header"><div class="repo-icon"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg></div><div><div><a href="#" class="repo-title">vr-interaction-toolkit</a><span class="repo-visibility">Public</span></div></div></div>
                                 <p class="repo-description">Complete VR interaction system untuk Unity XR. Hand tracking, object grabbing, UI interaction, dan teleportation mechanics.</p>
                                 <div class="repo-meta"><div class="repo-meta-item"><span class="language-color" style="background-color: #178600;"></span><span>C#</span></div><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25zm0 2.445L6.615 5.5a.75.75 0 01-.564.41l-3.097.45 2.24 2.184a.75.75 0 01.216.664l-.528 3.084 2.769-1.456a.75.75 0 01.698 0l2.77 1.456-.53-3.084a.75.75 0 01.216-.664l2.24-2.183-3.096-.45a.75.75 0 01-.564-.41L8 2.694v.001z"></path></svg><span>35</span></a><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878zm3.75 7.378a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm3-8.75a.75.75 0 100-1.5.75.75 0 000 1.5z"></path></svg><span>11</span></a><span style="color: var(--color-fg-muted); font-size: 12px;">Updated 2 weeks ago</span></div>
                             </div>
 
-                                                        <div class="repo-card" style="animation-delay: 0.6s;">
-                                <div class="repo-header"><div class="repo-icon"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg></div><div><div><a href="#" class="repo-title">vr-interaction-toolkit</a><span class="repo-visibility">Public</span></div></div></div>
-                                <p class="repo-description">Complete VR interaction system untuk Unity XR. Hand tracking, object grabbing, UI interaction, dan teleportation mechanics.</p>
-                                <div class="repo-meta"><div class="repo-meta-item"><span class="language-color" style="background-color: #178600;"></span><span>C#</span></div><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25zm0 2.445L6.615 5.5a.75.75 0 01-.564.41l-3.097.45 2.24 2.184a.75.75 0 01.216.664l-.528 3.084 2.769-1.456a.75.75 0 01.698 0l2.77 1.456-.53-3.084a.75.75 0 01.216-.664l2.24-2.183-3.096-.45a.75.75 0 01-.564-.41L8 2.694v.001z"></path></svg><span>35</span></a><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878zm3.75 7.378a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm3-8.75a.75.75 0 100-1.5.75.75 0 000 1.5z"></path></svg><span>11</span></a><span style="color: var(--color-fg-muted); font-size: 12px;">Updated 2 weeks ago</span></div>
-                            </div>
-
-                            <div class="repo-card" style="animation-delay: 0.7s;">
+                            <div class="repo-card" style="animation-delay: 0.5s;">
                                 <div class="repo-header"><div class="repo-icon"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg></div><div><div><a href="#" class="repo-title">environment-shader-library</a><span class="repo-visibility">Public</span></div></div></div>
                                 <p class="repo-description">Collection of custom shaders untuk environment rendering. Termasuk water, foliage, dan terrain shaders untuk Unity dan Unreal.</p>
                                 <div class="repo-meta"><div class="repo-meta-item"><span class="language-color" style="background-color: #ff6347;"></span><span>HLSL</span></div><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25zm0 2.445L6.615 5.5a.75.75 0 01-.564.41l-3.097.45 2.24 2.184a.75.75 0 01.216.664l-.528 3.084 2.769-1.456a.75.75 0 01.698 0l2.77 1.456-.53-3.084a.75.75 0 01.216-.664l2.24-2.183-3.096-.45a.75.75 0 01-.564-.41L8 2.694v.001z"></path></svg><span>31</span></a><a href="#" class="repo-stats"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878zm3.75 7.378a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm3-8.75a.75.75 0 100-1.5.75.75 0 000 1.5z"></path></svg><span>12</span></a><span style="color: var(--color-fg-muted); font-size: 12px;">Updated last week</span></div>
@@ -1377,7 +1364,8 @@
         </section>
     </main>
 
-    <footer style="border-top: 1px solid var(--color-border-default); padding: 32px 0; margin-top: 40px; background: rgba(13,17,23,0.8); backdrop-filter: blur(8px);">
+    <!-- ZOOM FIX: backdrop-filter removed from footer inline style -->
+    <footer style="border-top: 1px solid var(--color-border-default); padding: 32px 0; margin-top: 40px; background: rgba(13,17,23,0.98);">
         <div class="container">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--color-fg-muted);">
                 <div>© 2024 bryanikorismaputra. All rights reserved.</div>
@@ -1385,13 +1373,13 @@
                     <a href="https://github.com/bryaniko" style="color: var(--color-accent-fg); text-decoration: none;">GitHub</a>
                     <a href="https://linkedin.com/in/yourusername" style="color: var(--color-accent-fg); text-decoration: none;">LinkedIn</a>
                     <a href="https://twitter.com/yourusername" style="color: var(--color-accent-fg); text-decoration: none;">Twitter</a>
-                    <a href="/cdn-cgi/l/email-protection#781a0a0119161113170a110b1519080d0c0a19381f15191114561b1715" style="color: var(--color-accent-fg); text-decoration: none;">Email</a>
+                    <a href="mailto:bryaniko@example.com" style="color: var(--color-accent-fg); text-decoration: none;">Email</a>
                 </div>
             </div>
         </div>
     </footer>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    <script>
         // ===== STARFALL BACKGROUND SYSTEM =====
         (function() {
             const canvas = document.getElementById('starfall-canvas');
@@ -1404,18 +1392,14 @@
             resize();
             window.addEventListener('resize', resize);
 
-            // Shooting star class - flies to the right
             class ShootingStar {
                 constructor() { this.reset(true); }
 
                 reset(initial = false) {
-                    // Start from random point on left half or top edge
                     if (Math.random() < 0.6) {
-                        // Spawn from left edge
                         this.x = Math.random() * canvas.width * 0.3;
                         this.y = Math.random() * canvas.height;
                     } else {
-                        // Spawn from top edge
                         this.x = Math.random() * canvas.width * 0.5;
                         this.y = Math.random() * canvas.height * 0.4;
                     }
@@ -1425,11 +1409,10 @@
                         this.y = Math.random() * canvas.height;
                     }
 
-                    // Angle: mostly rightward with slight downward diagonal
-                    const angle = (Math.random() * 20 - 10) * (Math.PI / 180); // -10 to +10 degrees from horizontal
+                    const angle = (Math.random() * 20 - 10) * (Math.PI / 180);
                     this.speed = 4 + Math.random() * 8;
                     this.vx = Math.cos(angle) * this.speed;
-                    this.vy = Math.sin(angle) * this.speed + 0.5; // slight downward drift
+                    this.vy = Math.sin(angle) * this.speed + 0.5;
 
                     this.length = 80 + Math.random() * 180;
                     this.alpha = 0;
@@ -1438,7 +1421,6 @@
                     this.fadeSpeed = 0.04 + Math.random() * 0.04;
                     this.width = 0.5 + Math.random() * 1.5;
 
-                    // Color variants: white, light blue, light purple
                     const colors = [
                         [255, 255, 255],
                         [150, 200, 255],
@@ -1485,7 +1467,6 @@
                     ctx.lineCap = 'round';
                     ctx.stroke();
 
-                    // Bright head glow
                     const headGlow = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.width * 3);
                     headGlow.addColorStop(0, `rgba(${r},${g},${b},${this.alpha})`);
                     headGlow.addColorStop(1, `rgba(${r},${g},${b},0)`);
@@ -1496,7 +1477,6 @@
                 }
             }
 
-            // Initialize stars
             const stars = [];
             const MAX_STARS = 8;
 
@@ -1505,24 +1485,21 @@
             }
 
             let lastSpawn = 0;
-            const SPAWN_INTERVAL = 800; // ms between new stars
+            const SPAWN_INTERVAL = 800;
 
             function animate(now) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                // Spawn new stars
                 if (now - lastSpawn > SPAWN_INTERVAL && stars.length < MAX_STARS) {
                     stars.push(new ShootingStar());
                     lastSpawn = now;
                 }
 
-                // Update & draw
                 for (let i = stars.length - 1; i >= 0; i--) {
                     const s = stars[i];
                     s.update();
                     s.draw();
 
-                    // Remove if off screen or dead
                     if (s.dead || s.x > canvas.width + 200 || s.y > canvas.height + 200) {
                         stars.splice(i, 1);
                     }
@@ -1533,7 +1510,6 @@
 
             requestAnimationFrame(animate);
 
-            // Static background star dots
             const staticContainer = document.getElementById('static-stars');
             const starCount = 120;
             for (let i = 0; i < starCount; i++) {
@@ -1867,64 +1843,29 @@
             observer.observe(card);
         });
 
-        // ===== DISABLE RIGHT-CLICK & INSPECT =====
-        // Disable right-click context menu
+        // ===== DISABLE RIGHT-CLICK =====
         document.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             return false;
         });
 
-        // Disable developer tools
+        // Disable developer tools shortcuts
         document.addEventListener('keydown', (e) => {
-            // F12
-            if (e.keyCode === 123) {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+Shift+I
-            if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+Shift+C
-            if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+Shift+J
-            if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+Shift+K
-            if (e.ctrlKey && e.shiftKey && e.keyCode === 75) {
-                e.preventDefault();
-                return false;
-            }
+            if (e.keyCode === 123) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 73) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 67) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 74) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 75) { e.preventDefault(); return false; }
         });
 
-        // Disable right-click untuk mobile
-        document.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 1) {
-                e.preventDefault();
-            }
-        }, false);
-
-        // Detect if DevTools is open
-        setInterval(() => {
-            const threshold = 160;
-            if (window.outerWidth - window.innerWidth > threshold ||
-                window.outerHeight - window.innerHeight > threshold) {
-                document.body.innerHTML = '';
-            }
-        }, 1000);
+        // NOTE: DevTools size detector removed — it caused blank screen on zoom
+        // because window.outerHeight - window.innerHeight > 160 at zoom levels
+        // like 150%, which incorrectly triggered document.body.innerHTML = ''
 
         // ===== HIDE LOADING ANIMATION WHEN PAGE LOADS =====
         window.addEventListener('load', function() {
             const loadingOverlay = document.getElementById('loading-overlay');
             loadingOverlay.classList.add('hidden');
-            
-            // Remove from DOM after transition completes
             setTimeout(function() {
                 loadingOverlay.style.display = 'none';
             }, 500);
