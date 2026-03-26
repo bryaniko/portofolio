@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Last Map: The Legacy of Decay</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #0a0705;
+    --bg-card: #12100d;
+    --bg-surface: #1a1612;
+    --bg-worn: #221e18;
+    --ink-primary: #d4c4a0;
+    --ink-faded: #8a7a60;
+    --ink-rust: #a85c2c;
+    --ink-blood: #8b1a1a;
+    --ink-gold: #c9a227;
+    --ink-green: #4a7c59;
+    --border-worn: #3d3228;
+    --border-gold: #6b5220;
+    --tear-color: #5c3d20;
+    --perforation: #2a2018;
+    --stamina-color: #c9a227;
+    --power-color: #a85c2c;
+    --food-color: #4a7c59;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IM Fell English', serif;
+    background: var(--bg-deep);
+    color: var(--ink-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Parchment texture overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: 
+      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px),
+      repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px);
+    pointer-events: none; z-index: 0;
+  }
+
+  .game-container { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 0 16px; }
+
+  /* TITLE SCREEN */
+  #title-screen {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; text-align: center; padding: 40px 20px;
+  }
+
+  .title-ornament {
+    font-size: 12px; letter-spacing: 8px; color: var(--ink-faded);
+    font-family: 'Special Elite', monospace; text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  h1.game-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(28px, 6vw, 64px);
+    color: var(--ink-primary);
+    line-height: 1.1;
+    text-shadow: 0 0 40px rgba(201,162,39,0.3);
+    margin-bottom: 8px;
+  }
+
+  h2.game-subtitle {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(11px, 2vw, 16px);
+    color: var(--ink-rust);
+    letter-spacing: 4px; font-weight: 400;
+    margin-bottom: 48px;
+  }
+
+  .title-divider {
+    width: 200px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-gold), transparent);
+    margin: 0 auto 40px;
+  }
+
+  .title-lore {
+    max-width: 480px; font-size: 15px; line-height: 1.8;
+    color: var(--ink-faded); font-style: italic; margin-bottom: 48px;
+  }
+
+  .btn-start {
+    font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 3px;
+    background: transparent; border: 1px solid var(--border-gold);
+    color: var(--ink-gold); padding: 14px 40px; cursor: pointer;
+    text-transform: uppercase; transition: all 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .btn-start::before {
+    content: ''; position: absolute; inset: 0;
+    background: var(--ink-gold); opacity: 0; transition: opacity 0.3s;
+  }
+  .btn-start:hover::before { opacity: 0.1; }
+  .btn-start:hover { border-color: var(--ink-gold); letter-spacing: 4px; }
+
+  /* GAME SCREEN */
+  #game-screen { display: none; padding: 20px 0 60px; }
+
+  /* HUD */
+  .hud {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    padding: 16px; background: var(--bg-surface);
+    border: 1px solid var(--border-worn); border-bottom: none;
+    margin-bottom: 0;
+  }
+  .hud-item { text-align: center; }
+  .hud-label {
+    font-family: 'Special Elite', monospace; font-size: 10px;
+    letter-spacing: 2px; color: var(--ink-faded); text-transform: uppercase; display: block;
+  }
+  .hud-value {
+    font-family: 'Cinzel', serif; font-size: 20px; font-weight: 700;
+  }
+  .hud-value.hp { color: var(--ink-blood); }
+  .hud-value.food { color: var(--ink-green); }
+  .hud-value.deck { color: var(--ink-primary); }
+  .hud-value.zone { color: var(--ink-rust); }
+
+  /* PROGRESS BAR */
+  .progress-bar-wrap {
+    background: var(--bg-surface); border: 1px solid var(--border-worn);
+    border-top: none; padding: 8px 16px 12px; margin-bottom: 16px;
+  }
+  .progress-label {
+    font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 2px;
+    color: var(--ink-faded); text-transform: uppercase; margin-bottom: 6px; display: block;
+  }
+  .progress-bar {
+    height: 4px; background: var(--bg-worn); border-radius: 2px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--ink-rust), var(--ink-gold));
+    transition: width 0.5s ease; border-radius: 2px;
+  }
+
+  /* LOG */
+  .game-log {
+    background: var(--bg-surface); border: 1px solid var(--border-worn);
+    padding: 12px 16px; margin-bottom: 16px; min-height: 60px; max-height: 80px;
+    overflow-y: auto; font-size: 13px; font-style: italic; color: var(--ink-faded);
+    line-height: 1.6;
+  }
+  .log-entry { margin-bottom: 4px; }
+  .log-entry.important { color: var(--ink-rust); }
+  .log-entry.good { color: var(--ink-green); }
+  .log-entry.gold { color: var(--ink-gold); }
+
+  /* CARD HAND */
+  .hand-section { margin-bottom: 16px; }
+  .section-header {
+    font-family: 'Special Elite', monospace; font-size: 10px;
+    letter-spacing: 3px; color: var(--ink-faded); text-transform: uppercase;
+    border-bottom: 1px solid var(--border-worn); padding-bottom: 8px; margin-bottom: 12px;
+  }
+
+  .hand-cards {
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+    min-height: 180px;
+  }
+
+  /* CARD */
+  .card {
+    width: 120px; height: 180px; position: relative;
+    background: var(--bg-card); border: 1px solid var(--border-worn);
+    cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0; user-select: none;
+  }
+  .card:hover:not(.disabled) { transform: translateY(-8px); box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
+  .card.selected {
+    transform: translateY(-12px);
+    border-color: var(--ink-gold);
+    box-shadow: 0 0 0 1px var(--ink-gold), 0 12px 24px rgba(201,162,39,0.2);
+  }
+  .card.disabled { opacity: 0.4; cursor: default; }
+
+  /* Perforation lines */
+  .card::before {
+    content: ''; position: absolute;
+    top: 36px; left: 0; right: 0; height: 1px;
+    background: repeating-linear-gradient(90deg, var(--perforation) 0, var(--perforation) 3px, transparent 3px, transparent 6px);
+  }
+  .card::after {
+    content: ''; position: absolute;
+    bottom: 36px; left: 0; right: 0; height: 1px;
+    background: repeating-linear-gradient(90deg, var(--perforation) 0, var(--perforation) 3px, transparent 3px, transparent 6px);
+  }
+
+  /* Card torn effect */
+  .card.torn-top::before { display: none; }
+  .card.torn-top { border-top: 2px solid var(--tear-color); }
+  .card.torn-corner-tl::before { display: none; }
+
+  .card-header {
+    height: 36px; padding: 6px 8px 0;
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .card-type {
+    font-family: 'Special Elite', monospace; font-size: 8px;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .card-type.encounter { color: var(--ink-blood); }
+  .card-type.resource { color: var(--ink-green); }
+  .card-type.explorer { color: var(--ink-gold); }
+  .card-type.sanctuary { color: var(--ink-gold); }
+
+  .card-value {
+    font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700;
+    line-height: 1;
+  }
+  .card-value.power { color: var(--ink-rust); }
+  .card-value.stamina { color: var(--ink-gold); }
+  .card-value.food-val { color: var(--ink-green); }
+
+  .card-art {
+    height: 72px; margin: 0 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; position: relative; overflow: hidden;
+  }
+  .card-art .art-symbol { position: relative; z-index: 1; }
+
+  .card-footer {
+    height: 36px; padding: 0 8px 6px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .card-name {
+    font-family: 'IM Fell English', serif; font-size: 10px;
+    color: var(--ink-primary); text-align: center; font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .card-body {
+    padding: 4px 8px; text-align: center;
+    font-family: 'Special Elite', monospace; font-size: 8px;
+    color: var(--ink-faded); line-height: 1.4; flex: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Stamina pip (tearable corner) */
+  .stamina-corner {
+    position: absolute; top: 0; right: 0;
+    width: 28px; height: 28px;
+    background: var(--bg-worn);
+    clip-path: polygon(100% 0, 100% 100%, 0 0);
+    display: flex; align-items: flex-start; justify-content: flex-end;
+    padding: 3px;
+  }
+  .stamina-corner.torn {
+    background: var(--bg-card);
+    clip-path: polygon(100% 0, 100% 100%, 0 0);
+    opacity: 0.3;
+  }
+  .stamina-pip {
+    font-size: 8px; color: var(--stamina-color);
+    font-family: 'Cinzel', serif; font-weight: 700;
+  }
+
+  /* Fold indicator */
+  .fold-indicator {
+    position: absolute; bottom: 36px; left: 0; right: 0;
+    background: rgba(201,162,39,0.1); border-top: 1px dashed var(--border-gold);
+    height: 36px; display: flex; align-items: center; justify-content: center;
+    font-family: 'Special Elite', monospace; font-size: 8px;
+    color: var(--ink-gold); letter-spacing: 1px;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .fold-indicator:hover { background: rgba(201,162,39,0.2); }
+  .fold-indicator.unlocked { background: rgba(201,162,39,0.15); }
+
+  /* ENCOUNTER AREA */
+  .encounter-area {
+    background: var(--bg-surface); border: 1px solid var(--border-worn);
+    padding: 20px; margin-bottom: 16px; min-height: 120px;
+    position: relative; text-align: center;
+  }
+  .encounter-title {
+    font-family: 'Cinzel', serif; font-size: 18px; color: var(--ink-rust);
+    margin-bottom: 8px;
+  }
+  .encounter-desc {
+    font-size: 13px; color: var(--ink-faded); font-style: italic;
+    margin-bottom: 16px; line-height: 1.6;
+  }
+  .encounter-difficulty {
+    font-family: 'Cinzel', serif; font-size: 13px; color: var(--ink-primary);
+    margin-bottom: 16px;
+  }
+  .difficulty-bar {
+    display: flex; gap: 4px; justify-content: center; margin-bottom: 12px;
+  }
+  .diff-pip {
+    width: 16px; height: 16px; border: 1px solid var(--border-worn);
+  }
+  .diff-pip.filled { background: var(--ink-rust); border-color: var(--ink-rust); }
+
+  /* ACTIONS */
+  .action-btns {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+    margin-top: 12px;
+  }
+  .btn-action {
+    font-family: 'Special Elite', monospace; font-size: 11px;
+    letter-spacing: 2px; text-transform: uppercase;
+    background: transparent; border: 1px solid;
+    padding: 8px 16px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-action.primary { border-color: var(--ink-rust); color: var(--ink-rust); }
+  .btn-action.primary:hover { background: rgba(168,92,44,0.15); }
+  .btn-action.secondary { border-color: var(--border-worn); color: var(--ink-faded); }
+  .btn-action.secondary:hover { background: var(--bg-worn); color: var(--ink-primary); }
+  .btn-action.gold { border-color: var(--border-gold); color: var(--ink-gold); }
+  .btn-action.gold:hover { background: rgba(201,162,39,0.1); }
+  .btn-action.danger { border-color: var(--ink-blood); color: var(--ink-blood); }
+  .btn-action.danger:hover { background: rgba(139,26,26,0.15); }
+  .btn-action:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+
+  /* DISCARD PILE */
+  .discard-area {
+    display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px;
+  }
+  .discard-pile {
+    width: 90px; min-height: 140px;
+    border: 1px dashed var(--border-worn); 
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 4px;
+    font-family: 'Special Elite', monospace; font-size: 9px;
+    color: var(--ink-faded); text-align: center; padding: 8px; flex-shrink: 0;
+  }
+  .discard-count { font-family: 'Cinzel', serif; font-size: 20px; color: var(--ink-faded); }
+
+  .torn-display {
+    flex: 1; padding: 12px; background: var(--bg-surface);
+    border: 1px solid var(--border-worn); min-height: 140px;
+  }
+  .torn-header {
+    font-family: 'Special Elite', monospace; font-size: 9px;
+    letter-spacing: 2px; color: var(--ink-faded); text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .torn-item {
+    font-family: 'IM Fell English', serif; font-size: 11px;
+    color: var(--ink-rust); margin-bottom: 3px; padding-left: 8px;
+    border-left: 1px solid var(--tear-color);
+  }
+
+  /* Victory / Defeat screens */
+  #victory-screen, #defeat-screen {
+    display: none; min-height: 100vh;
+    flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 40px 20px;
+  }
+
+  .end-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(24px, 5vw, 48px);
+    margin-bottom: 16px;
+    animation: fadeIn 1s ease;
+  }
+  .end-title.victory { color: var(--ink-gold); }
+  .end-title.defeat { color: var(--ink-blood); }
+
+  .end-lore {
+    max-width: 480px; font-size: 15px; font-style: italic;
+    color: var(--ink-faded); line-height: 1.8; margin-bottom: 32px;
+  }
+
+  .legacy-report {
+    background: var(--bg-surface); border: 1px solid var(--border-worn);
+    padding: 24px; max-width: 420px; margin-bottom: 32px; text-align: left;
+    width: 100%;
+  }
+  .legacy-title {
+    font-family: 'Cinzel', serif; font-size: 14px; color: var(--ink-gold);
+    letter-spacing: 2px; margin-bottom: 16px; text-align: center;
+  }
+  .legacy-stat {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--perforation); padding: 8px 0;
+    font-size: 13px;
+  }
+  .legacy-stat-label { color: var(--ink-faded); font-family: 'Special Elite', monospace; font-size: 11px; letter-spacing: 1px; }
+  .legacy-stat-val { color: var(--ink-primary); font-family: 'Cinzel', serif; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes tearShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-3px) rotate(-1deg); } 75% { transform: translateX(3px) rotate(1deg); } }
+  .tear-anim { animation: tearShake 0.3s ease; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg-deep); }
+  ::-webkit-scrollbar-thumb { background: var(--border-worn); border-radius: 2px; }
+
+  /* Mobile responsive */
+  @media (max-width: 480px) {
+    .hud { grid-template-columns: repeat(2, 1fr); }
+    .card { width: 100px; height: 155px; }
+    .card-art { height: 55px; font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TITLE SCREEN -->
+<div id="title-screen">
+  <div class="game-container">
+    <p class="title-ornament">— A Legacy Card Game —</p>
+    <h1 class="game-title">The Last Map</h1>
+    <h2 class="game-subtitle">The Legacy of Decay</h2>
+    <div class="title-divider"></div>
+    <p class="title-lore">
+      Dunia telah hancur. Satu-satunya harapan adalah Sanctuary yang tersembunyi di ujung peta. 
+      Namun peta itu... adalah dirimu sendiri. Setiap keputusan meninggalkan luka. 
+      Setiap pengorbanan mengubah segalanya. Selamanya.
+    </p>
+    <button class="btn-start" onclick="startGame()">✦ Mulai Perjalanan ✦</button>
+    <div class="title-divider" style="margin-top:40px;"></div>
+    <p style="font-family:'Special Elite',monospace;font-size:9px;letter-spacing:2px;color:var(--ink-faded);margin-top:24px;text-transform:uppercase;">Kerusakan pada kartu bersifat permanen · Pilih dengan bijak</p>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen">
+  <div class="game-container">
+    <!-- HUD -->
+    <div class="hud">
+      <div class="hud-item">
+        <span class="hud-label">Nyawa</span>
+        <span class="hud-value hp" id="hud-hp">3</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Makanan</span>
+        <span class="hud-value food" id="hud-food">3</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Sisa Deck</span>
+        <span class="hud-value deck" id="hud-deck">15</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Zona</span>
+        <span class="hud-value zone" id="hud-zone">I</span>
+      </div>
+    </div>
+    <div class="progress-bar-wrap">
+      <span class="progress-label">Perjalanan Menuju Sanctuary</span>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div class="game-log" id="game-log">
+      <div class="log-entry">Perjalananmu dimulai di reruntuhan kota tua. Angin membawa bau abu dan harapan yang hampir padam...</div>
+    </div>
+
+    <!-- ENCOUNTER AREA -->
+    <div class="encounter-area" id="encounter-area">
+      <div id="encounter-content">
+        <p style="color:var(--ink-faded);font-style:italic;font-size:13px;">Tarik kartu untuk memulai giliranmu...</p>
+      </div>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="action-btns" id="main-actions">
+      <button class="btn-action primary" onclick="drawCard()" id="btn-draw">⊕ Tarik Kartu</button>
+      <button class="btn-action secondary" onclick="rest()" id="btn-rest" disabled>⊙ Istirahat</button>
+      <button class="btn-action gold" onclick="overdrive()" id="btn-overdrive" style="display:none">⚡ Overdrive</button>
+      <button class="btn-action danger" onclick="sacrifice()" id="btn-sacrifice" style="display:none">✂ Korbankan Kartu</button>
+    </div>
+
+    <!-- HAND -->
+    <div class="hand-section" style="margin-top:16px;">
+      <div class="section-header">— Tangan ( <span id="hand-count">0</span> kartu ) —</div>
+      <div class="hand-cards" id="hand-cards"></div>
+    </div>
+
+    <!-- BOTTOM INFO -->
+    <div class="discard-area">
+      <div class="discard-pile">
+        <div class="discard-count" id="discard-count">0</div>
+        <div>Kartu<br>Dibuang</div>
+      </div>
+      <div class="torn-display">
+        <div class="torn-header">— Jejak Kerusakan —</div>
+        <div id="torn-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VICTORY -->
+<div id="victory-screen">
+  <div class="game-container">
+    <p style="font-family:'Special Elite',monospace;font-size:10px;letter-spacing:4px;color:var(--ink-faded);margin-bottom:24px;text-transform:uppercase;">Kamu telah sampai</p>
+    <h2 class="end-title victory">Sanctuary Ditemukan</h2>
+    <div class="title-divider"></div>
+    <p class="end-lore">Di antara reruntuhan dunia yang telah musnah, kamu berdiri di gerbang Sanctuary. Peta dalam dirimu — tercabik, tercoreng, penuh luka — namun membawamu pulang.</p>
+    <div class="legacy-report" id="victory-legacy"></div>
+    <button class="btn-start" onclick="resetGame()">✦ Mulai Lagi ✦</button>
+  </div>
+</div>
+
+<!-- DEFEAT -->
+<div id="defeat-screen">
+  <div class="game-container">
+    <p style="font-family:'Special Elite',monospace;font-size:10px;letter-spacing:4px;color:var(--ink-faded);margin-bottom:24px;text-transform:uppercase;">Perjalanan berakhir</p>
+    <h2 class="end-title defeat">Kamu Gugur di Jalan</h2>
+    <div class="title-divider"></div>
+    <p class="end-lore" id="defeat-reason">Tubuhmu menyerah sebelum mencapai tujuan. Namun jejakmu — luka-luka di setiap kartu yang kamu korbankan — akan selalu ada sebagai legasi.</p>
+    <div class="legacy-report" id="defeat-legacy"></div>
+    <button class="btn-start" onclick="resetGame()">✦ Coba Lagi ✦</button>
+  </div>
+</div>
+
+<script>
+// ============ GAME STATE ============
+let state = {};
+
+const CARD_TYPES = {
+  ENCOUNTER: 'encounter',
+  RESOURCE: 'resource',
+  EXPLORER: 'explorer',
+  SANCTUARY: 'sanctuary'
+};
+
+const CARD_TEMPLATES = [
+  // Resources
+  { id:'food1', type:CARD_TYPES.RESOURCE, name:'Sisa Ransum', art:'🥫', desc:'Makanan busuk, tapi cukup untuk bertahan', foodVal:1, powerVal:0, staminaVal:2, zone:1 },
+  { id:'food2', type:CARD_TYPES.RESOURCE, name:'Air Jernih', art:'💧', desc:'Sumber air tersembunyi di balik batu', foodVal:2, powerVal:0, staminaVal:3, zone:1 },
+  { id:'food3', type:CARD_TYPES.RESOURCE, name:'Buah Beracun', art:'🍄', desc:'Dimakan dengan risiko, tapi mengisi perut', foodVal:1, powerVal:0, staminaVal:1, zone:2 },
+  { id:'weapon1', type:CARD_TYPES.RESOURCE, name:'Pisau Berkarat', art:'🔪', desc:'Tua namun masih tajam', foodVal:0, powerVal:3, staminaVal:2, zone:1 },
+  { id:'weapon2', type:CARD_TYPES.RESOURCE, name:'Tombak Kayu', art:'🪵', desc:'Dibuat dari reruntuhan pagar', foodVal:0, powerVal:2, staminaVal:3, zone:1 },
+  { id:'weapon3', type:CARD_TYPES.RESOURCE, name:'Kapak Perang', art:'⚔️', desc:'Senjata tentara yang telah jatuh', foodVal:0, powerVal:5, staminaVal:2, zone:2 },
+  { id:'armor1', type:CARD_TYPES.RESOURCE, name:'Rompi Kulit', art:'🛡️', desc:'Melindungi dari gigitan kecil', foodVal:0, powerVal:1, staminaVal:4, zone:1 },
+  // Encounters
+  { id:'enc1', type:CARD_TYPES.ENCOUNTER, name:'Serigala Lapar', art:'🐺', desc:'Matanya menyala dalam kegelapan', difficulty:3, zone:1 },
+  { id:'enc2', type:CARD_TYPES.ENCOUNTER, name:'Badai Pasir', art:'🌪️', desc:'Angin merobek segalanya', difficulty:2, zone:1 },
+  { id:'enc3', type:CARD_TYPES.ENCOUNTER, name:'Bandit Jalan', art:'💀', desc:'Mereka tidak kenal ampun', difficulty:4, zone:2 },
+  { id:'enc4', type:CARD_TYPES.ENCOUNTER, name:'Monster Kabut', art:'👁️', desc:'Sesuatu yang tidak seharusnya ada', difficulty:5, zone:2 },
+  { id:'enc5', type:CARD_TYPES.ENCOUNTER, name:'Badai Listrik', art:'⚡', desc:'Petir menghantam tanpa henti', difficulty:3, zone:2 },
+  { id:'enc6', type:CARD_TYPES.ENCOUNTER, name:'Kawanan Serigala', art:'🐾', desc:'Tiga ekor, satu mangsa', difficulty:5, zone:3 },
+  { id:'enc7', type:CARD_TYPES.ENCOUNTER, name:'Penjaga Terakhir', art:'🗡️', desc:'Benteng terakhir sebelum Sanctuary', difficulty:6, zone:3 },
+  { id:'enc8', type:CARD_TYPES.ENCOUNTER, name:'Celah Berbahaya', art:'🌋', desc:'Satu salah langkah, tamat', difficulty:2, zone:1 },
+];
+
+const ZONE_NAMES = ['I','II','III'];
+const ZONE_LORE = [
+  'Hutan Mati — Pohon-pohon seperti tulang yang mencuat dari tanah',
+  'Padang Abu — Bekas kota yang terbakar habis oleh sesuatu',
+  'Gerbang Terakhir — Kabut tebal menyembunyikan apa yang menanti'
+];
+
+function createDeck() {
+  let deck = [];
+  // Add based on zone progression
+  let pool = [...CARD_TEMPLATES.filter(c => c.zone === 1)];
+  // Shuffle and pick 7 from zone 1
+  shuffle(pool);
+  deck.push(...pool.slice(0, 7));
+  
+  let pool2 = [...CARD_TEMPLATES.filter(c => c.zone === 2)];
+  shuffle(pool2);
+  deck.push(...pool2.slice(0, 5));
+
+  let pool3 = [...CARD_TEMPLATES.filter(c => c.zone === 3)];
+  shuffle(pool3);
+  deck.push(...pool3.slice(0, 3));
+
+  // Add sanctuary at bottom
+  deck.push({ id:'sanctuary', type:CARD_TYPES.SANCTUARY, name:'The Last Sanctuary', art:'🏰', desc:'Tempat yang kamu perjuangkan seumur hidup', foodVal:0, powerVal:0, staminaVal:5, zone:3 });
+
+  // Mark cards
+  deck = deck.map(c => ({
+    ...c,
+    uid: Math.random().toString(36).slice(2),
+    torn: false,
+    staminaTorn: false,
+    folded: false,
+    named: null,
+    damage: 0 // 0=intact, 1=worn, 2=damaged
+  }));
+
+  shuffle(deck);
+  // Ensure sanctuary is at bottom
+  const sIdx = deck.findIndex(c => c.type === CARD_TYPES.SANCTUARY);
+  if (sIdx > -1) {
+    const [s] = deck.splice(sIdx, 1);
+    deck.push(s);
+  }
+  return deck;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+}
+
+function startGame() {
+  document.getElementById('title-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'block';
+  resetState();
+  renderAll();
+  addLog('Perjalananmu dimulai. Semoga karma memihakmu, Penjelajah.', 'gold');
+}
+
+function resetState() {
+  state = {
+    hp: 3,
+    food: 3,
+    zone: 0,
+    deck: createDeck(),
+    hand: [],
+    discard: [],
+    tornLog: [],
+    currentEncounter: null,
+    phase: 'draw', // draw, resolve, rest
+    selectedCard: null,
+    cardsDrawn: 0,
+    turnCount: 0,
+    stats: { totalTears: 0, monstersDefeated: 0, resourcesUsed: 0, turnsPlayed: 0 }
+  };
+}
+
+function resetGame() {
+  document.getElementById('victory-screen').style.display = 'none';
+  document.getElementById('defeat-screen').style.display = 'none';
+  document.getElementById('title-screen').style.display = 'flex';
+}
+
+// ============ GAME FLOW ============
+function drawCard() {
+  if (state.phase !== 'draw') return;
+  if (state.deck.length === 0) { defeat('Deck habis — peta telah sepenuhnya hancur.'); return; }
+
+  const card = state.deck.shift();
+  state.cardsDrawn++;
+  state.turnCount++;
+  state.stats.turnsPlayed++;
+
+  // Update zone
+  if (state.cardsDrawn <= 5) state.zone = 0;
+  else if (state.cardsDrawn <= 10) state.zone = 1;
+  else state.zone = 2;
+
+  if (card.type === CARD_TYPES.SANCTUARY) {
+    victory(); return;
+  }
+
+  if (card.type === CARD_TYPES.ENCOUNTER) {
+    state.currentEncounter = card;
+    state.phase = 'resolve';
+    showEncounter(card);
+    addLog(`Kamu bertemu: ${card.name} (Kesulitan: ${card.difficulty})`, 'important');
+  } else {
+    state.hand.push(card);
+    state.phase = 'rest-check';
+    showResourceDrawn(card);
+    addLog(`Kamu menemukan: ${card.name}`, card.foodVal > 0 ? 'good' : '');
+  }
+  renderAll();
+}
+
+function showEncounter(card) {
+  const el = document.getElementById('encounter-content');
+  const playerPower = getHandPower();
+  const canOverdrive = state.hand.length > 0;
+  
+  el.innerHTML = `
+    <p class="encounter-title">${card.art} ${card.name}</p>
+    <p class="encounter-desc">${card.desc}</p>
+    <p class="encounter-difficulty">Tingkat Ancaman: ${card.difficulty} | Kekuatanmu: ${playerPower}</p>
+    <div class="difficulty-bar">${Array.from({length:card.difficulty}, (_,i) => `<div class="diff-pip ${i < playerPower ? 'filled' : ''}"></div>`).join('')}</div>
+    <p style="font-size:12px;color:var(--ink-faded);font-style:italic;">
+      ${playerPower >= card.difficulty ? '✓ Kamu bisa mengalahkan ini langsung.' : '⚠ Kekuatanmu kurang. Gunakan Overdrive atau Korbankan kartu.'}
+    </p>
+  `;
+
+  document.getElementById('btn-draw').disabled = true;
+  document.getElementById('btn-rest').disabled = true;
+  document.getElementById('btn-overdrive').style.display = canOverdrive && playerPower < card.difficulty ? 'inline-block' : 'none';
+  document.getElementById('btn-sacrifice').style.display = 'inline-block';
+
+  // Add fight button if enough power
+  if (playerPower >= card.difficulty) {
+    const extra = document.createElement('div');
+    extra.style.marginTop = '8px';
+    extra.innerHTML = `<button class="btn-action gold" onclick="fightEncounter()">⚔ Hadapi Ancaman</button>`;
+    el.appendChild(extra);
+  } else {
+    const extra = document.createElement('div');
+    extra.style.marginTop = '8px';
+    extra.innerHTML = `<button class="btn-action danger" onclick="takeDamage()">💔 Terima Nasib (-1 HP)</button>`;
+    el.appendChild(extra);
+  }
+}
+
+function showResourceDrawn(card) {
+  const el = document.getElementById('encounter-content');
+  el.innerHTML = `
+    <p class="encounter-title">${card.art} ${card.name}</p>
+    <p class="encounter-desc">${card.desc}</p>
+    <p style="font-size:13px;color:var(--ink-faded);">
+      ${card.foodVal > 0 ? `Makanan +${card.foodVal}` : ''} 
+      ${card.powerVal > 0 ? `Kekuatan: ${card.powerVal}` : ''}
+      ${card.staminaVal > 0 ? `Stamina: ${card.staminaVal}` : ''}
+    </p>
+    <p style="font-size:11px;font-style:italic;color:var(--ink-faded);margin-top:8px;">Kartu masuk ke tanganmu. Akhiri giliran atau istirahat jika perlu.</p>
+  `;
+
+  if (card.type === CARD_TYPES.RESOURCE && card.foodVal > 0) {
+    state.food = Math.min(state.food + card.foodVal, 5);
+    state.stats.resourcesUsed++;
+    addLog(`+${card.foodVal} makanan dari ${card.name}`, 'good');
+  }
+
+  document.getElementById('btn-draw').disabled = false;
+  document.getElementById('btn-rest').disabled = false;
+  document.getElementById('btn-overdrive').style.display = 'none';
+  document.getElementById('btn-sacrifice').style.display = 'none';
+}
+
+function getHandPower() {
+  return state.hand.reduce((sum, c) => {
+    const base = c.powerVal || 0;
+    const penalty = c.staminaTorn ? 1 : 0;
+    return sum + Math.max(0, base - penalty);
+  }, 0);
+}
+
+function fightEncounter() {
+  if (!state.currentEncounter) return;
+  const enc = state.currentEncounter;
+  state.stats.monstersDefeated++;
+  addLog(`Kamu mengalahkan ${enc.name}!`, 'gold');
+  state.discard.push(enc);
+  state.currentEncounter = null;
+  state.phase = 'draw';
+  document.getElementById('btn-draw').disabled = false;
+  document.getElementById('btn-rest').disabled = false;
+  document.getElementById('btn-sacrifice').style.display = 'none';
+  showIdleEncounter();
+  renderAll();
+}
+
+function takeDamage() {
+  state.hp--;
+  addLog(`Kamu terluka. HP tersisa: ${state.hp}`, 'important');
+  if (state.hp <= 0) { defeat('Nyawamu habis. Kamu roboh di jalan menuju Sanctuary.'); return; }
+  state.discard.push(state.currentEncounter);
+  state.currentEncounter = null;
+  state.phase = 'draw';
+  document.getElementById('btn-draw').disabled = false;
+  document.getElementById('btn-rest').disabled = false;
+  document.getElementById('btn-sacrifice').style.display = 'none';
+  showIdleEncounter();
+  renderAll();
+}
+
+function overdrive() {
+  if (state.hand.length === 0) return;
+  // Tear power corner from a selected card (auto-select weakest)
+  const candidates = state.hand.filter(c => !c.staminaTorn && c.powerVal > 0);
+  if (candidates.length === 0) { addLog('Tidak ada kartu yang bisa di-overdrive!', 'important'); return; }
+  
+  if (state.selectedCard) {
+    const card = state.hand.find(c => c.uid === state.selectedCard);
+    if (card && !card.staminaTorn) {
+      tearCard(card);
+      state.selectedCard = null;
+    }
+  } else {
+    tearCard(candidates[0]);
+  }
+  
+  const playerPower = getHandPower();
+  const enc = state.currentEncounter;
+  if (playerPower >= enc.difficulty) {
+    addLog(`Overdrive berhasil! Kamu mengalahkan ${enc.name}!`, 'gold');
+    fightEncounter();
+  } else {
+    addLog(`Overdrive: kekuatan +2 sementara. Namun masih kurang...`, 'important');
+    showEncounter(enc);
+    renderAll();
+  }
+}
+
+function tearCard(card) {
+  card.staminaTorn = true;
+  card.damage = Math.min(card.damage + 1, 2);
+  state.stats.totalTears++;
+  state.tornLog.push(`${card.name} — Stamina corner dirobek`);
+  addLog(`✂ Sudut Stamina "${card.name}" dirobek selamanya.`, 'important');
+  
+  if (card.damage >= 2 && Math.random() < 0.3) {
+    // Card is too damaged, remove
+    state.hand = state.hand.filter(c => c.uid !== card.uid);
+    addLog(`"${card.name}" hancur total dan hilang untuk selamanya.`, 'important');
+    state.tornLog.push(`${card.name} — Hancur total`);
+  }
+  renderAll();
+}
+
+function sacrifice() {
+  if (state.hand.length === 0) { addLog('Tidak ada kartu untuk dikorbankan!', 'important'); return; }
+  if (!state.currentEncounter) return;
+  
+  const card = state.selectedCard 
+    ? state.hand.find(c => c.uid === state.selectedCard)
+    : state.hand[0];
+  
+  if (!card) return;
+  
+  state.hand = state.hand.filter(c => c.uid !== card.uid);
+  state.tornLog.push(`${card.name} — Dikorbankan sepenuhnya`);
+  state.stats.totalTears++;
+  addLog(`Kartu "${card.name}" dikorbankan untuk melarikan diri.`, 'important');
+  state.selectedCard = null;
+  
+  state.discard.push(state.currentEncounter);
+  state.currentEncounter = null;
+  state.phase = 'draw';
+  document.getElementById('btn-draw').disabled = false;
+  document.getElementById('btn-rest').disabled = false;
+  document.getElementById('btn-sacrifice').style.display = 'none';
+  document.getElementById('btn-overdrive').style.display = 'none';
+  showIdleEncounter();
+  renderAll();
+}
+
+function rest() {
+  if (state.food <= 0) {
+    // Must tear a card
+    if (state.hand.length === 0) { defeat('Tidak ada makanan, tidak ada kartu. Kamu menyerah.'); return; }
+    const best = [...state.hand].sort((a,b) => (b.powerVal||0) - (a.powerVal||0))[0];
+    tearCard(best);
+    addLog(`Lapar memaksamu menyobek "${best.name}" untuk bertahan.`, 'important');
+  } else {
+    state.food--;
+    state.hp = Math.min(state.hp + 1, 3);
+    addLog('Kamu beristirahat dan memulihkan 1 HP.', 'good');
+  }
+  state.phase = 'draw';
+  renderAll();
+}
+
+function showIdleEncounter() {
+  const el = document.getElementById('encounter-content');
+  const zone = ZONE_NAMES[state.zone] || 'I';
+  el.innerHTML = `
+    <p style="font-family:'Cinzel',serif;font-size:14px;color:var(--ink-faded);margin-bottom:6px;">Zona ${zone}: ${ZONE_LORE[state.zone] || ''}</p>
+    <p style="font-size:12px;color:var(--ink-faded);font-style:italic;">Tarik kartu untuk melanjutkan perjalanan...</p>
+  `;
+}
+
+function selectCard(uid) {
+  if (state.phase !== 'resolve' && state.phase !== 'rest-check') return;
+  state.selectedCard = state.selectedCard === uid ? null : uid;
+  renderHand();
+}
+
+// ============ RENDER ============
+function renderAll() {
+  renderHUD();
+  renderHand();
+  renderDiscard();
+  renderTornLog();
+  renderProgress();
+}
+
+function renderHUD() {
+  document.getElementById('hud-hp').textContent = '❤'.repeat(state.hp) || '✝';
+  document.getElementById('hud-food').textContent = state.food;
+  document.getElementById('hud-deck').textContent = state.deck.length;
+  document.getElementById('hud-zone').textContent = ZONE_NAMES[state.zone] || 'I';
+  document.getElementById('hand-count').textContent = state.hand.length;
+}
+
+function renderProgress() {
+  const total = 16; // ~15 cards + sanctuary
+  const drawn = state.cardsDrawn;
+  const pct = Math.min(100, (drawn / total) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+function renderHand() {
+  const container = document.getElementById('hand-cards');
+  if (state.hand.length === 0) {
+    container.innerHTML = '<p style="font-family:\'Special Elite\',monospace;font-size:11px;color:var(--ink-faded);text-align:center;width:100%;padding:20px;">— Tangan kosong —</p>';
+    return;
+  }
+  container.innerHTML = state.hand.map(card => renderCard(card)).join('');
+}
+
+function renderCard(card) {
+  const isSelected = state.selectedCard === card.uid;
+  const isEnc = card.type === CARD_TYPES.ENCOUNTER;
+  const typeClass = card.type;
+
+  const staminaCorner = `
+    <div class="stamina-corner ${card.staminaTorn ? 'torn' : ''}">
+      <span class="stamina-pip">${card.staminaTorn ? '' : card.staminaVal}</span>
+    </div>
+  `;
+
+  const worn = card.damage === 1 ? 'border-style: dashed;' : card.damage >= 2 ? 'border-color: var(--ink-blood);' : '';
+  const tornTop = card.staminaTorn ? 'class="card tear-anim"' : 'class="card"';
+
+  const statLine = card.powerVal ? `<span style="color:var(--power-color);font-family:'Cinzel',serif;font-size:10px;font-weight:700;">⚔ ${card.powerVal}${card.staminaTorn?' (-1)':''}</span>` : 
+                   card.foodVal ? `<span style="color:var(--food-color);font-family:'Cinzel',serif;font-size:10px;font-weight:700;">🍞 +${card.foodVal}</span>` : '';
+
+  return `
+    <div ${tornTop} style="${worn}" onclick="selectCard('${card.uid}')" 
+         class="card ${isSelected ? 'selected' : ''} ${card.staminaTorn ? 'torn-corner-tl' : ''}">
+      ${staminaCorner}
+      <div class="card-header">
+        <span class="card-type ${typeClass}">${card.type === CARD_TYPES.RESOURCE ? 'Sumber Daya' : 'Penjelajah'}</span>
+      </div>
+      <div class="card-art"><span class="art-symbol">${card.art}</span></div>
+      <div class="card-body">${card.desc.slice(0,40)}</div>
+      <div class="card-footer">
+        <div style="text-align:center;margin-bottom:3px;">${statLine}</div>
+        <div class="card-name">${card.name}${card.named ? ` "${card.named}"` : ''}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderDiscard() {
+  document.getElementById('discard-count').textContent = state.discard.length;
+}
+
+function renderTornLog() {
+  const container = document.getElementById('torn-list');
+  if (state.tornLog.length === 0) {
+    container.innerHTML = '<p style="font-size:11px;color:var(--ink-faded);font-style:italic;">Belum ada kerusakan...</p>';
+    return;
+  }
+  container.innerHTML = state.tornLog.slice(-6).map(t => 
+    `<div class="torn-item">${t}</div>`
+  ).join('');
+}
+
+function addLog(msg, type = '') {
+  const log = document.getElementById('game-log');
+  const entry = document.createElement('div');
+  entry.className = `log-entry ${type}`;
+  entry.textContent = msg;
+  log.insertBefore(entry, log.firstChild);
+  while (log.children.length > 12) log.removeChild(log.lastChild);
+}
+
+// ============ END STATES ============
+function victory() {
+  document.getElementById('game-screen').style.display = 'none';
+  const vs = document.getElementById('victory-screen');
+  vs.style.display = 'flex';
+  
+  document.getElementById('victory-legacy').innerHTML = legacyReport();
+}
+
+function defeat(reason) {
+  document.getElementById('game-screen').style.display = 'none';
+  const ds = document.getElementById('defeat-screen');
+  ds.style.display = 'flex';
+  document.getElementById('defeat-reason').textContent = reason;
+  document.getElementById('defeat-legacy').innerHTML = legacyReport();
+}
+
+function legacyReport() {
+  const s = state.stats;
+  return `
+    <div class="legacy-title">— Laporan Legasi —</div>
+    <div class="legacy-stat">
+      <span class="legacy-stat-label">Giliran Bertahan</span>
+      <span class="legacy-stat-val">${s.turnsPlayed}</span>
+    </div>
+    <div class="legacy-stat">
+      <span class="legacy-stat-label">Kartu Dirobek</span>
+      <span class="legacy-stat-val">${s.totalTears}</span>
+    </div>
+    <div class="legacy-stat">
+      <span class="legacy-stat-label">Monster Dikalahkan</span>
+      <span class="legacy-stat-val">${s.monstersDefeated}</span>
+    </div>
+    <div class="legacy-stat">
+      <span class="legacy-stat-label">Kartu Tersisa di Tangan</span>
+      <span class="legacy-stat-val">${state.hand.length}</span>
+    </div>
+    <div class="legacy-stat">
+      <span class="legacy-stat-label">HP Akhir</span>
+      <span class="legacy-stat-val">${Math.max(0, state.hp)}</span>
+    </div>
+  `;
+}
+
+// Init title
+document.getElementById('title-screen').style.display = 'flex';
+document.getElementById('game-screen').style.display = 'none';
+</script>
+</body>
+</html>

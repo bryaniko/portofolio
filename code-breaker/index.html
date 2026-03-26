@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CODE-BREAKER</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323:wght@400&family=Orbitron:wght@400;700;900&display=swap');
+:root{--bg:#0a0a0f;--bg2:#0f0f1a;--panel:#111120;--border:#1a1a35;--cmd:#f0c040;--cond:#4080ff;--action:#ff5520;--interrupt:#a040ff;--green:#00ff88;--red:#ff2255;--text:#c0c8e8;--dim:#505070;--glow-cmd:0 0 8px #f0c04088;--glow-cond:0 0 8px #4080ff88;--glow-act:0 0 8px #ff552088;--glow-int:0 0 8px #a040ff88}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;height:100vh}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);pointer-events:none;z-index:9999}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,80,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,80,255,0.03) 1px,transparent 1px);background-size:32px 32px;pointer-events:none;z-index:0}
+.screen{position:fixed;inset:0;z-index:10;display:none;flex-direction:column;overflow:hidden}
+.screen.active{display:flex}
+
+/* ===== MENU ===== */
+#screen-menu{align-items:center;justify-content:center}
+.menu-bg{position:absolute;inset:0;z-index:0}
+#matrix-canvas{position:absolute;inset:0;width:100%;height:100%}
+.menu-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:36px}
+.menu-title h1{font-family:'Orbitron',monospace;font-size:clamp(36px,7vw,72px);font-weight:900;color:var(--green);text-shadow:0 0 30px #00ff8877,0 0 80px #00ff8822;letter-spacing:10px;text-align:center;line-height:1.1}
+.menu-title .sub{font-size:12px;color:var(--dim);letter-spacing:5px;text-align:center;margin-top:10px}
+.menu-btns{display:flex;flex-direction:column;gap:14px;min-width:280px}
+.menu-btn{padding:15px 28px;border:1px solid;border-radius:3px;font-family:'Share Tech Mono',monospace;font-size:15px;letter-spacing:3px;cursor:pointer;transition:all 0.2s;text-align:left;position:relative;overflow:hidden;background:transparent;display:flex;align-items:center;gap:12px}
+.menu-btn .arrow{opacity:0;transition:all 0.2s;font-size:16px}
+.menu-btn:hover .arrow{opacity:1;transform:translateX(4px)}
+.menu-btn:hover{filter:brightness(1.2);padding-left:36px}
+.menu-btn:active{transform:scale(0.98)}
+.menu-btn.play{border-color:var(--green);color:var(--green)}
+.menu-btn.play:hover{background:rgba(0,255,136,0.08);box-shadow:0 0 24px rgba(0,255,136,0.15),inset 0 0 16px rgba(0,255,136,0.05)}
+.menu-btn.tutorial{border-color:var(--cmd);color:var(--cmd)}
+.menu-btn.tutorial:hover{background:rgba(240,192,64,0.08);box-shadow:0 0 24px rgba(240,192,64,0.15)}
+.menu-btn.guide{border-color:var(--cond);color:var(--cond)}
+.menu-btn.guide:hover{background:rgba(64,128,255,0.08);box-shadow:0 0 24px rgba(64,128,255,0.15)}
+.menu-footer{font-size:10px;color:#202035;letter-spacing:3px}
+
+/* ===== GUIDE ===== */
+#screen-guide{background:var(--bg)}
+.top-bar{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2)}
+.top-bar h2{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;letter-spacing:3px}
+.guide-body{flex:1;overflow-y:auto;display:flex;min-height:0}
+.guide-nav{width:170px;flex-shrink:0;border-right:1px solid var(--border);padding:12px 8px;display:flex;flex-direction:column;gap:4px}
+.gnav-btn{padding:8px 10px;border:1px solid var(--border);border-radius:2px;background:transparent;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:10px;cursor:pointer;text-align:left;transition:all 0.15s;line-height:1.4}
+.gnav-btn:hover,.gnav-btn.active{border-color:var(--cond);color:var(--cond);background:rgba(64,128,255,0.07)}
+.guide-content{flex:1;padding:24px 28px;overflow-y:auto;min-width:0}
+.gsec{display:none}.gsec.active{display:block}
+.gsec h3{font-family:'Orbitron',monospace;font-size:14px;color:var(--cond);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.gsec h4{font-size:12px;color:var(--text);margin:14px 0 6px;letter-spacing:1px}
+.gsec p{font-size:12px;color:var(--dim);line-height:1.9;margin-bottom:10px}
+.gsec ul{list-style:none;margin-bottom:10px}
+.gsec ul li{font-size:12px;color:var(--dim);line-height:1.8;padding-left:14px;position:relative}
+.gsec ul li::before{content:'◆ ';position:absolute;left:0;color:var(--cond);font-size:8px;top:5px}
+.tag{display:inline-block;padding:1px 6px;border-radius:2px;font-size:11px;border:1px solid;margin:1px}
+.tag.cmd{color:var(--cmd);border-color:var(--cmd);background:rgba(240,192,64,0.1)}
+.tag.cond{color:var(--cond);border-color:var(--cond);background:rgba(64,128,255,0.1)}
+.tag.act{color:var(--action);border-color:var(--action);background:rgba(255,85,32,0.1)}
+.tag.int{color:var(--interrupt);border-color:var(--interrupt);background:rgba(160,64,255,0.1)}
+.tag.good{color:var(--green);border-color:var(--green);background:rgba(0,255,136,0.1)}
+.tag.bad{color:var(--red);border-color:var(--red);background:rgba(255,34,85,0.1)}
+.sdemo{background:#0d0d1a;border:1px solid var(--border);border-radius:4px;padding:12px 14px;margin:8px 0;font-size:12px}
+.sdemo .dlbl{font-size:9px;color:var(--dim);letter-spacing:2px;margin-bottom:8px}
+.srow{display:flex;gap:6px;align-items:center;margin:5px 0;flex-wrap:wrap}
+.arrow{color:var(--dim);font-size:12px}
+.phase-row{display:flex;margin:8px 0;flex-wrap:wrap;gap:1px}
+.pstep{flex:1;min-width:70px;padding:8px 6px;background:#0d0d1a;border:1px solid var(--border);text-align:center}
+.pstep .pnum{font-size:20px;color:var(--cmd);font-family:'VT323'}
+.pstep .pname{font-size:9px;color:var(--green);letter-spacing:1px}
+.pstep .pdesc{font-size:9px;color:var(--dim);margin-top:2px}
+.hl-box{border:1px solid var(--green);background:rgba(0,255,136,0.04);border-radius:3px;padding:10px 14px;margin:8px 0}
+.hl-box .hlt{color:var(--green);font-size:12px;margin-bottom:6px}
+.hl-box ul li{font-size:11px;color:var(--dim);padding:2px 0 2px 14px}
+.hl-box ul li::before{content:'→ ';position:absolute;left:0;color:var(--green)}
+.cg{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.cmf{width:108px;padding:8px;background:#0d0d18;border:1px solid;border-radius:3px}
+.cmf.cmd{border-color:var(--cmd)}.cmf.cond{border-color:var(--cond)}.cmf.act{border-color:var(--action)}.cmf.int{border-color:var(--interrupt)}
+.cmf .cn{font-size:11px;font-weight:bold;margin-bottom:4px}
+.cmf.cmd .cn{color:var(--cmd)}.cmf.cond .cn{color:var(--cond)}.cmf.act .cn{color:var(--action)}.cmf.int .cn{color:var(--interrupt)}
+.cmf .cd{font-size:9px;color:var(--dim);line-height:1.4}
+.cmf .cp{font-size:10px;color:var(--text);margin-top:4px;opacity:0.7}
+
+/* ===== TUTORIAL ===== */
+#screen-tutorial{background:var(--bg)}
+.tut-bar{display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2)}
+.tut-bar h2{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--cmd);letter-spacing:3px}
+.tut-prog{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.tut-prog-fill{height:100%;background:var(--cmd);transition:width 0.4s;border-radius:2px}
+.tut-lbl{font-size:11px;color:var(--dim);white-space:nowrap}
+.tut-body{flex:1;display:flex;min-height:0;overflow:hidden}
+.tut-sidebar{width:190px;flex-shrink:0;border-right:1px solid var(--border);padding:10px 8px;overflow-y:auto}
+.tsi{padding:6px 10px;border-radius:2px;font-size:10px;color:var(--dim);line-height:1.4;margin-bottom:2px}
+.tsi.done{color:var(--green);opacity:0.6}
+.tsi.done::before{content:'✓ '}
+.tsi.current{color:var(--cmd);background:rgba(240,192,64,0.07);border-left:2px solid var(--cmd);padding-left:8px}
+.tsi.locked{opacity:0.25}
+.tut-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.tut-slides{flex:1;position:relative;overflow:hidden}
+.tut-slide{position:absolute;inset:0;padding:22px 28px;overflow-y:auto;opacity:0;transform:translateX(28px);transition:all 0.32s ease;pointer-events:none}
+.tut-slide.active{opacity:1;transform:none;pointer-events:all}
+.tut-slide.exit{opacity:0;transform:translateX(-28px)}
+.tut-slide h3{font-family:'Orbitron',monospace;font-size:15px;color:var(--cmd);margin-bottom:8px;letter-spacing:2px}
+.hook{font-size:13px;color:var(--green);margin-bottom:16px;padding:8px 12px;background:rgba(0,255,136,0.04);border-left:2px solid var(--green)}
+.tut-slide p{font-size:12px;color:var(--dim);line-height:1.9;margin-bottom:12px}
+.tip-box{font-size:11px;color:var(--cmd);padding:8px 12px;background:rgba(240,192,64,0.04);border:1px solid rgba(240,192,64,0.2);border-radius:2px;margin:8px 0}
+.tip-box::before{content:'💡 TIP: '}
+.warn-box{font-size:11px;color:var(--red);padding:8px 12px;background:rgba(255,34,85,0.04);border:1px solid rgba(255,34,85,0.2);border-radius:2px;margin:8px 0}
+.warn-box::before{content:'⚠ PERHATIAN: '}
+.tut-foot{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-shrink:0}
+
+/* ===== GAME ===== */
+#screen-game{background:var(--bg)}
+#header{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#0d0d20,transparent);flex-shrink:0}
+#header h1{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:var(--green);text-shadow:0 0 14px #00ff8844;letter-spacing:3px}
+.pindicator{font-size:10px;color:var(--dim);display:flex;gap:5px;align-items:center}
+.pindicator span{color:var(--cmd)}
+#main{flex:1;display:flex;flex-direction:column;gap:3px;padding:5px 9px;overflow:hidden}
+.pzone{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:6px 9px;flex-shrink:0}
+.pzone.enemy{border-color:#ff224420;background:#110d0d}
+.pzone.player{border-color:#00ff8820;background:#0a110d}
+.zhead{display:flex;align-items:center;gap:8px;margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.pname{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--green);letter-spacing:2px}
+.enemy .pname{color:var(--red)}
+.ibar{flex:1;height:9px;background:#1a1a2a;border:1px solid var(--border);border-radius:2px;overflow:hidden;position:relative}
+.ifill{height:100%;background:linear-gradient(90deg,#00ff88,#00cc66);transition:width 0.5s;position:relative}
+.enemy .ifill{background:linear-gradient(90deg,#ff2255,#cc1133)}
+.ifill::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 4px,rgba(255,255,255,0.07) 4px,rgba(255,255,255,0.07) 5px)}
+.ival{font-size:10px;color:var(--text);white-space:nowrap}
+.dinfo{font-size:9px;color:var(--dim);white-space:nowrap}
+.carea{display:flex;gap:5px;margin-bottom:3px;min-height:64px}
+.cline{flex:1;min-height:60px;border:1px dashed var(--border);border-radius:3px;padding:4px;display:flex;flex-direction:column;gap:2px;transition:all 0.2s;position:relative;overflow:hidden;background:rgba(0,0,0,0.3)}
+.cline.valid{border-color:#00ff8840;background:rgba(0,255,136,0.025)}
+.cline.invalid{border-color:#ff225540;background:rgba(255,34,85,0.025)}
+.cline.pending{border-color:#f0c04040;background:rgba(240,192,64,0.025)}
+.cline.drop-target{border-color:var(--green)!important;border-style:solid!important;box-shadow:inset 0 0 8px rgba(0,255,136,0.08)}
+.llabel{font-size:8px;color:var(--dim);position:absolute;top:3px;right:4px;font-family:'Share Tech Mono'}
+.cline.valid .llabel{color:var(--green)}.cline.invalid .llabel{color:var(--red)}.cline.pending .llabel{color:var(--cmd)}
+.lcards{display:flex;gap:3px;flex-wrap:wrap;align-items:flex-start;padding-top:12px}
+.elh{font-size:9px;color:var(--dim);margin-top:14px;text-align:center;width:100%;opacity:0.4}
+.mc{padding:2px 5px;border-radius:2px;font-size:9px;border:1px solid;white-space:nowrap;font-family:'Share Tech Mono'}
+.mc.cmd{color:var(--cmd);border-color:var(--cmd);background:rgba(240,192,64,0.07)}
+.mc.cond{color:var(--cond);border-color:var(--cond);background:rgba(64,128,255,0.07)}
+.mc.act{color:var(--action);border-color:var(--action);background:rgba(255,85,32,0.07)}
+.mc.int{color:var(--interrupt);border-color:var(--interrupt);background:rgba(160,64,255,0.07)}
+.mc.hidden{color:var(--dim);border-color:var(--border);background:#1a1a2a;letter-spacing:2px}
+#battle{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:5px 9px;display:flex;align-items:center;gap:7px;min-height:40px;flex-shrink:0}
+.larea{flex:1;overflow-y:auto;max-height:40px;font-size:10px;color:var(--dim);display:flex;flex-direction:column-reverse;gap:1px}
+.lentry{line-height:1.3}.lentry.success{color:var(--green)}.lentry.error{color:var(--red)}.lentry.warn{color:var(--cmd)}.lentry.info{color:var(--cond)}.lentry.interrupt{color:var(--interrupt)}
+#harea{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:6px 9px;display:flex;flex-direction:column;gap:5px;flex-shrink:0}
+#hcards{display:flex;gap:7px;flex-wrap:wrap;min-height:100px;align-items:flex-start}
+.card{width:80px;height:112px;border:1px solid var(--border);border-radius:4px;background:#0d0d18;padding:4px;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;position:relative;overflow:hidden;display:flex;flex-direction:column;user-select:none;flex-shrink:0}
+.card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.03),transparent 60%);pointer-events:none}
+.card:hover:not(.disabled){transform:translateY(-6px) scale(1.03);z-index:10}
+.card.selected{transform:translateY(-10px);z-index:20}
+.card.cmd{border-color:var(--cmd);box-shadow:var(--glow-cmd)}.card.cond{border-color:var(--cond);box-shadow:var(--glow-cond)}.card.act{border-color:var(--action);box-shadow:var(--glow-act)}.card.int{border-color:var(--interrupt);box-shadow:var(--glow-int)}
+.card.selected.cmd{box-shadow:0 0 18px #f0c04090,0 -8px 14px #f0c04030}.card.selected.cond{box-shadow:0 0 18px #4080ff90,0 -8px 14px #4080ff30}.card.selected.act{box-shadow:0 0 18px #ff555090,0 -8px 14px #ff555030}.card.selected.int{box-shadow:0 0 18px #a040ff90,0 -8px 14px #a040ff30}
+.card.disabled{opacity:0.4;cursor:default}
+.ctb{font-size:8px;letter-spacing:1px;margin-bottom:2px;opacity:0.7}
+.card.cmd .ctb{color:var(--cmd)}.card.cond .ctb{color:var(--cond)}.card.act .ctb{color:var(--action)}.card.int .ctb{color:var(--interrupt)}
+.cname{font-size:10px;font-weight:bold;line-height:1.2;margin-bottom:2px;font-family:'Share Tech Mono'}
+.card.cmd .cname{color:var(--cmd)}.card.cond .cname{color:var(--cond)}.card.act .cname{color:var(--action)}.card.int .cname{color:var(--interrupt)}
+.cdiv{height:1px;background:var(--border);margin:2px 0}
+.cdesc{font-size:8px;color:var(--dim);line-height:1.4;flex:1}
+.cpow{font-size:9px;text-align:right;margin-top:auto;padding-top:2px;color:var(--text);opacity:0.7}
+.cbits{position:absolute;top:3px;right:4px;font-size:7px;color:var(--dim)}
+#abar{display:flex;gap:5px;flex-wrap:wrap;align-items:center;padding:2px 0;flex-shrink:0}
+.btn{padding:5px 11px;border-radius:2px;font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;border:1px solid;transition:all 0.15s;letter-spacing:1px;background:transparent}
+.btn:hover{filter:brightness(1.2)}.btn:active{transform:scale(0.97)}
+.btn.primary{border-color:var(--green);color:var(--green);background:rgba(0,255,136,0.07)}
+.btn.danger{border-color:var(--red);color:var(--red);background:rgba(255,34,85,0.07)}
+.btn.warning{border-color:var(--cmd);color:var(--cmd);background:rgba(240,192,64,0.07)}
+.btn.purple{border-color:var(--interrupt);color:var(--interrupt);background:rgba(160,64,255,0.07)}
+.btn.gray{border-color:var(--border);color:var(--dim);background:transparent}
+.btn.disabled{opacity:0.3;cursor:default;pointer-events:none}
+.plabel{font-size:11px;color:var(--cmd);font-family:'Orbitron',monospace;font-weight:700;padding:3px 7px;border:1px solid var(--cmd);border-radius:2px;background:rgba(240,192,64,0.04);letter-spacing:2px}
+.ramc{margin-left:auto;font-size:10px;color:var(--dim)}.ramc.warn{color:var(--red)}
+.lsbtns{display:flex;gap:3px}
+.lbtn{padding:3px 7px;border:1px solid var(--border);border-radius:2px;background:transparent;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:9px;cursor:pointer}
+.lbtn:hover,.lbtn.active{border-color:var(--green);color:var(--green);background:rgba(0,255,136,0.05)}
+#ti{font-size:9px;padding:3px 7px;border:1px solid;border-radius:2px;letter-spacing:1px}
+#ti.pt{border-color:var(--green);color:var(--green);background:rgba(0,255,136,0.04)}
+#ti.et{border-color:var(--red);color:var(--red);background:rgba(255,34,85,0.04)}
+.tooltip{position:fixed;z-index:1000;background:#0d0d20;border:1px solid var(--border);border-radius:4px;padding:7px 9px;font-size:10px;max-width:148px;pointer-events:none;opacity:0;transition:opacity 0.15s;box-shadow:0 4px 18px rgba(0,0,0,0.6)}
+.tooltip.show{opacity:1}.tooltip-title{font-size:11px;margin-bottom:3px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:24px;min-width:270px;max-width:400px;text-align:center;box-shadow:0 0 40px rgba(0,255,136,0.08);transform:scale(0.9);transition:transform 0.3s}
+.modal-overlay.show .modal{transform:scale(1)}
+.modal h2{font-family:'Orbitron',monospace;font-size:19px;font-weight:900;color:var(--green);margin-bottom:8px;text-shadow:0 0 18px var(--green)}
+.modal p{font-size:12px;color:var(--dim);margin-bottom:16px;line-height:1.7}.modal .btn{margin:3px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes slideIn{from{transform:translateX(-10px);opacity:0}to{transform:none;opacity:1}}
+@keyframes eglow{0%{box-shadow:inset 0 0 0 rgba(0,255,136,0)}50%{box-shadow:inset 0 0 18px rgba(0,255,136,0.28)}100%{box-shadow:inset 0 0 0 rgba(0,255,136,0)}}
+@keyframes cglow{0%{box-shadow:inset 0 0 0 rgba(255,34,85,0)}50%{box-shadow:inset 0 0 18px rgba(255,34,85,0.28)}100%{box-shadow:inset 0 0 0 rgba(255,34,85,0)}}
+.blink{animation:blink 1s step-end infinite}
+.si{animation:slideIn 0.22s ease}
+.cline.ea{animation:eglow 0.6s ease}.cline.ca{animation:cglow 0.6s ease}
+::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+<!-- MENU -->
+<div id="screen-menu" class="screen active">
+  <div class="menu-bg"><canvas id="matrix-canvas"></canvas></div>
+  <div class="menu-content">
+    <div class="menu-title">
+      <h1>CODE<br>BREAKER</h1>
+      <div class="sub">// HACKER CARD STRATEGY GAME</div>
+    </div>
+    <div class="menu-btns">
+      <button class="menu-btn play" onclick="go('game');startGame()"><span class="arrow">›</span>[ PLAY ] &nbsp;&nbsp;MULAI BERMAIN</button>
+      <button class="menu-btn tutorial" onclick="go('tutorial');initTut()"><span class="arrow">›</span>[ TUTORIAL ] PELAJARI CARA MAIN</button>
+      <button class="menu-btn guide" onclick="go('guide')"><span class="arrow">›</span>[ GUIDE ] &nbsp;ATURAN &amp; KARTU</button>
+    </div>
+    <div class="menu-footer">// SELECT OPTION TO PROCEED</div>
+  </div>
+</div>
+
+<!-- GUIDE -->
+<div id="screen-guide" class="screen">
+  <div class="top-bar">
+    <button class="btn gray" onclick="go('menu')">← BACK</button>
+    <h2 style="color:var(--cond)">// GUIDE &amp; RULES</h2>
+  </div>
+  <div class="guide-body">
+    <div class="guide-nav">
+      <button class="gnav-btn active" onclick="showG('g0',this)">OVERVIEW</button>
+      <button class="gnav-btn" onclick="showG('g1',this)">FLOW GILIRAN</button>
+      <button class="gnav-btn" onclick="showG('g2',this)">SINTAKS KODE</button>
+      <button class="gnav-btn" onclick="showG('g3',this)">CMD CARDS</button>
+      <button class="gnav-btn" onclick="showG('g4',this)">COND CARDS</button>
+      <button class="gnav-btn" onclick="showG('g5',this)">ACTION CARDS</button>
+      <button class="gnav-btn" onclick="showG('g6',this)">INTERRUPT CARDS</button>
+      <button class="gnav-btn" onclick="showG('g7',this)">STRATEGI</button>
+    </div>
+    <div class="guide-content">
+      <div id="g0" class="gsec active">
+        <h3>OVERVIEW — APA ITU CODE-BREAKER?</h3>
+        <p>Code-Breaker adalah game kartu strategi dua pemain bertema hacker. Kamu menyusun <strong style="color:var(--text)">baris kode (program)</strong> dari kartu untuk menyerang sistem lawan.</p>
+        <h4>🎯 TUJUAN PERMAINAN</h4>
+        <p>Kurangi <span style="color:var(--green)">INTEGRITY (HP)</span> lawan dari <strong>100 → 0</strong>, atau habiskan isi <span style="color:var(--cond)">DECK</span> lawan.</p>
+        <h4>⚙ KONSEP INTI</h4>
+        <div class="hl-box">
+          <div class="hlt">3 Mekanisme Utama:</div>
+          <ul>
+            <li><strong style="color:var(--cmd)">Syntax Sequencing</strong> — Kartu wajib dalam urutan: CMD → COND → ACTION</li>
+            <li><strong style="color:var(--action)">Compile &amp; Execute</strong> — Program tidak langsung aktif, harus di-compile dulu</li>
+            <li><strong style="color:var(--interrupt)">The Stack</strong> — Interrupt bisa membatalkan program lawan kapan saja</li>
+          </ul>
+        </div>
+        <h4>📋 ATURAN DASAR</h4>
+        <ul>
+          <li>Maksimal <span style="color:var(--cmd)">3 program</span> aktif di meja sekaligus</li>
+          <li>Batas tangan: <span style="color:var(--cmd)">7 kartu (RAM Limit)</span></li>
+          <li>Program valid: minimal 1 <span class="tag cmd">CMD</span> + 1 <span class="tag act">ACTION</span></li>
+          <li><span class="tag cond">CONDITION</span> opsional tapi menambah power</li>
+        </ul>
+      </div>
+      <div id="g1" class="gsec">
+        <h3>FLOW GILIRAN — 5 FASE PER TURN</h3>
+        <div class="phase-row">
+          <div class="pstep"><div class="pnum">①</div><div class="pname">DRAW</div><div class="pdesc">Ambil 2 kartu</div></div>
+          <div class="pstep"><div class="pnum">②</div><div class="pname">CODING</div><div class="pdesc">Susun program</div></div>
+          <div class="pstep"><div class="pnum">③</div><div class="pname">COMPILE</div><div class="pdesc">Eksekusi kode</div></div>
+          <div class="pstep"><div class="pnum">④</div><div class="pname">INTERACT</div><div class="pdesc">Interrupt/defend</div></div>
+          <div class="pstep"><div class="pnum">⑤</div><div class="pname">END</div><div class="pdesc">Ganti giliran</div></div>
+        </div>
+        <h4>① DRAW PHASE</h4><p>Ambil 2 kartu dari Deck. Deck habis → Trash dikocok ulang. Keduanya kosong → -5 Integrity.</p>
+        <h4>② CODING PHASE</h4><p>Letakkan kartu ke baris kode (LINE 1–3). Kartu berstatus <span class="tag cmd">STAGING</span> — belum terlihat lawan. Tekan <span class="tag good">COMPILE</span> untuk eksekusi.</p>
+        <h4>③ COMPILE PHASE</h4>
+        <ul>
+          <li>✅ Urutan benar → <span style="color:var(--green)">EXECUTED</span> — efek berjalan</li>
+          <li>❌ Urutan salah → <span style="color:var(--red)">CRASH</span> — semua kartu di baris → Trash</li>
+          <li>⌛ Belum ada ACTION → <span style="color:var(--cmd)">PENDING</span> — tersimpan giliran berikut</li>
+        </ul>
+        <h4>④ INTERACTION PHASE</h4><p>Gunakan kartu <span class="tag int">INTERRUPT</span> via tombol [ INTERRUPT ] untuk mengganggu lawan.</p>
+        <h4>⑤ END PHASE</h4><p>Baris yang dieksekusi dibersihkan. Giliran berpindah ke lawan.</p>
+      </div>
+      <div id="g2" class="gsec">
+        <h3>SINTAKS KODE — URUTAN YANG BENAR</h3>
+        <div class="sdemo"><div class="dlbl">VALID SYNTAX ORDER:</div>
+          <div class="srow"><span class="tag cmd">① CMD</span><span class="arrow">+</span><span class="tag cond">[② COND?]</span><span class="arrow">+</span><span class="tag act">③ ACTION</span><span class="arrow">→</span><span class="tag good">EXECUTED ✓</span></div>
+        </div>
+        <h4>VALID:</h4>
+        <div class="sdemo">
+          <div class="srow"><span class="tag cmd">IF</span><span class="arrow">→</span><span class="tag cond">TRUE</span><span class="arrow">→</span><span class="tag act">ATTACK</span><span class="arrow">✓</span></div>
+          <div class="srow"><span class="tag cmd">EXEC</span><span class="arrow">→</span><span class="tag act">ENCRYPT</span><span class="arrow">✓</span><span style="font-size:10px;color:var(--dim)">(tanpa COND)</span></div>
+          <div class="srow"><span class="tag cmd">WHILE</span><span class="arrow">→</span><span class="tag cond">VALUE&gt;5</span><span class="arrow">→</span><span class="tag act">DDoS</span><span class="arrow">✓</span></div>
+        </div>
+        <h4>TIDAK VALID (CRASH):</h4>
+        <div class="sdemo">
+          <div class="srow"><span class="tag act">ATTACK</span><span class="arrow">→</span><span class="tag cmd">IF</span><span class="arrow">→</span><span class="tag bad">CRASH ✗</span><span style="font-size:10px;color:var(--dim)">(CMD harus duluan)</span></div>
+          <div class="srow"><span class="tag cond">TRUE</span><span class="arrow">→</span><span class="tag act">ATTACK</span><span class="arrow">→</span><span class="tag bad">CRASH ✗</span><span style="font-size:10px;color:var(--dim)">(tidak ada CMD)</span></div>
+        </div>
+      </div>
+      <div id="g3" class="gsec">
+        <h3>COMMAND CARDS <span class="tag cmd">CMD</span></h3>
+        <p>Wajib ada di setiap program. Harus posisi pertama. Beberapa memberi bonus khusus.</p>
+        <div class="cg">
+          <div class="cmf cmd"><div class="cn">IF</div><div class="cd">Eksekusi jika kondisi terpenuhi. Boost efek condition.</div></div>
+          <div class="cmf cmd"><div class="cn">WHILE</div><div class="cd">Ulangi aksi. Hasil ×1.5. Sinergi LOOP!=0.</div></div>
+          <div class="cmf cmd"><div class="cn">EXEC</div><div class="cd">Direct execute. Tidak butuh condition.</div></div>
+          <div class="cmf cmd"><div class="cn">SUDO</div><div class="cd">Elevasi privilege. +5 bonus power.</div></div>
+          <div class="cmf cmd"><div class="cn">FORK</div><div class="cd">Eksekusi terbagi. Efek ganda.</div></div>
+        </div>
+      </div>
+      <div id="g4" class="gsec">
+        <h3>CONDITION CARDS <span class="tag cond">COND</span></h3>
+        <p>Opsional tapi sangat berguna. Letakkan antara CMD dan ACTION. Beberapa punya syarat aktivasi.</p>
+        <div class="cg">
+          <div class="cmf cond"><div class="cn">TRUE</div><div class="cd">Selalu valid. +5 power.</div><div class="cp">PWR: 5</div></div>
+          <div class="cmf cond"><div class="cn">VALUE&gt;5</div><div class="cd">Lawan &lt;50 INT. +8 power.</div><div class="cp">PWR: 8</div></div>
+          <div class="cmf cond"><div class="cn">DEFINED</div><div class="cd">2+ program aktif. +6 power.</div><div class="cp">PWR: 6</div></div>
+          <div class="cmf cond"><div class="cn">OVERFLOW</div><div class="cd">Tangan ≥5 kartu. +10 power.</div><div class="cp">PWR: 10</div></div>
+          <div class="cmf cond"><div class="cn">LOOP!=0</div><div class="cd">Ada WHILE di meja. +7 power.</div><div class="cp">PWR: 7</div></div>
+        </div>
+      </div>
+      <div id="g5" class="gsec">
+        <h3>ACTION CARDS <span class="tag act">ACT</span></h3>
+        <p>Efek utama program. Wajib ada. Posisi akhir. Power bisa ditingkatkan COND.</p>
+        <div class="cg">
+          <div class="cmf act"><div class="cn">ATTACK</div><div class="cd">-15(+bonus) INT lawan.</div><div class="cp">PWR: 15</div></div>
+          <div class="cmf act"><div class="cn">ENCRYPT</div><div class="cd">+10 INT untuk dirimu.</div><div class="cp">PWR: 10</div></div>
+          <div class="cmf act"><div class="cn">DDoS</div><div class="cd">-12 dmg + crash 1 baris lawan.</div><div class="cp">PWR: 12</div></div>
+          <div class="cmf act"><div class="cn">INJECT</div><div class="cd">-8 dmg + draw 1 kartu.</div><div class="cp">PWR: 8</div></div>
+          <div class="cmf act"><div class="cn">FIREWALL</div><div class="cd">Tangkal serangan berikutnya.</div><div class="cp">—</div></div>
+          <div class="cmf act"><div class="cn">EXPLOIT</div><div class="cd">-20 dmg. Butuh 2+ COND!</div><div class="cp">PWR: 20</div></div>
+        </div>
+      </div>
+      <div id="g6" class="gsec">
+        <h3>INTERRUPT CARDS <span class="tag int">INT</span></h3>
+        <p>Dimainkan INSTAN via tombol <span class="tag int">[ INTERRUPT ]</span>. Tidak perlu disusun dalam program.</p>
+        <div class="cg">
+          <div class="cmf int"><div class="cn">NULL_PTR</div><div class="cd">Crash paksa 1 program lawan.</div></div>
+          <div class="cmf int"><div class="cn">BACKDOOR</div><div class="cd">Curi 1 kartu dari deck lawan.</div></div>
+          <div class="cmf int"><div class="cn">LOG_OUT</div><div class="cd">Buang kartu teratas deck lawan.</div></div>
+          <div class="cmf int"><div class="cn">PATCH</div><div class="cd">Perbaiki 1 Syntax Error barismu.</div></div>
+          <div class="cmf int"><div class="cn">ANTIVIRUS</div><div class="cd">Batalkan interrupt lawan.</div></div>
+        </div>
+      </div>
+      <div id="g7" class="gsec">
+        <h3>STRATEGI &amp; TIPS</h3>
+        <h4>🔴 Strategi Agresif</h4>
+        <p>ATTACK + WHILE untuk damage berulang (×1.5). SUDO untuk +5 amplifikasi. Gunakan VALUE&gt;5 saat lawan &lt;50 HP.</p>
+        <h4>🟢 Strategi Bertahan</h4>
+        <p>FIREWALL + ENCRYPT untuk heal &amp; tangkal. Simpan NULL_PTR ketika lawan akan mengeksekusi program besar.</p>
+        <h4>🟣 Strategi Kontrol Deck</h4>
+        <p>LOG_OUT + BACKDOOR untuk menguras deck lawan. Menang via kondisi deck kosong.</p>
+        <h4>💡 Tips Penting</h4>
+        <ul>
+          <li>OVERFLOW (+10) sangat kuat — pertahankan 5+ kartu di tangan</li>
+          <li>EXPLOIT: butuh 2 COND sekaligus — rencanakan dengan baik</li>
+          <li>WHILE + LOOP!=0 = (base+7)×1.5 — combo paling mematikan</li>
+          <li>Jangan biarkan baris kamu PENDING terlalu lama — lawan bisa NULL_PTR</li>
+          <li>PATCH bisa menyelamatkan syntax error yang terlanjur</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TUTORIAL -->
+<div id="screen-tutorial" class="screen">
+  <div class="tut-bar">
+    <button class="btn gray" onclick="go('menu')">← BACK</button>
+    <h2>// TUTORIAL</h2>
+    <div class="tut-prog"><div class="tut-prog-fill" id="tprog" style="width:10%"></div></div>
+    <div class="tut-lbl" id="tlbl">1 / 10</div>
+  </div>
+  <div class="tut-body">
+    <div class="tut-sidebar" id="tsb"></div>
+    <div class="tut-main">
+      <div class="tut-slides" id="tslides"></div>
+      <div class="tut-foot">
+        <button class="btn gray" id="tprev" onclick="tNav(-1)">← PREV</button>
+        <button class="btn warning" id="tnext" onclick="tNav(1)">NEXT →</button>
+        <button class="btn primary" id="tplay" style="display:none" onclick="go('game');startGame()">▶ MAIN SEKARANG</button>
+        <button class="btn gray" style="margin-left:auto" onclick="go('guide')">BUKA GUIDE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="screen-game" class="screen">
+  <div id="header">
+    <h1>// CODE-BREAKER<span class="blink">_</span></h1>
+    <div class="pindicator">PHASE: <span id="pdisplay">DRAW</span></div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <div id="ti" class="pt">YOUR TURN</div>
+      <button class="btn gray" onclick="go('menu')" style="font-size:9px;padding:2px 7px">MENU</button>
+    </div>
+  </div>
+  <div id="main">
+    <div class="pzone enemy" id="ezone">
+      <div class="zhead">
+        <span class="pname">ENEMY_AI</span>
+        <div class="ibar"><div class="ifill" id="ehpb" style="width:100%"></div></div>
+        <span class="ival"><span id="ehp">100</span>/100 INT</span>
+        <span class="dinfo">DECK:<span id="edc">20</span> TRS:<span id="etc">0</span></span>
+      </div>
+      <div class="carea" id="eca">
+        <div class="cline" id="el0"><div class="llabel">L1</div><div class="lcards"></div></div>
+        <div class="cline" id="el1"><div class="llabel">L2</div><div class="lcards"></div></div>
+        <div class="cline" id="el2"><div class="llabel">L3</div><div class="lcards"></div></div>
+      </div>
+    </div>
+    <div id="battle">
+      <div style="font-size:9px;color:var(--dim);white-space:nowrap">LOG&gt;</div>
+      <div class="larea" id="larea"></div>
+      <div style="font-size:9px;color:var(--dim);white-space:nowrap">TRS:<span id="ptc">0</span></div>
+    </div>
+    <div class="pzone player" id="pzone">
+      <div class="zhead">
+        <span class="pname">YOU</span>
+        <div class="ibar"><div class="ifill" id="phpb" style="width:100%"></div></div>
+        <span class="ival"><span id="php">100</span>/100 INT</span>
+        <span class="dinfo">DECK:<span id="pdc">20</span></span>
+      </div>
+      <div class="carea" id="pca">
+        <div class="cline" id="pl0" ondragover="dov(event,0)" ondrop="dop(event,0)"><div class="llabel">L1</div><div class="lcards"></div><div class="elh">drag/klik→L1</div></div>
+        <div class="cline" id="pl1" ondragover="dov(event,1)" ondrop="dop(event,1)"><div class="llabel">L2</div><div class="lcards"></div><div class="elh">drag/klik→L2</div></div>
+        <div class="cline" id="pl2" ondragover="dov(event,2)" ondrop="dop(event,2)"><div class="llabel">L3</div><div class="lcards"></div><div class="elh">drag/klik→L3</div></div>
+      </div>
+      <div id="harea">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">
+          <span style="font-size:9px;color:var(--dim)">// HAND (RAM)</span>
+          <div class="lsbtns">
+            <button class="lbtn active" onclick="selL(0)">L1</button>
+            <button class="lbtn" onclick="selL(1)">L2</button>
+            <button class="lbtn" onclick="selL(2)">L3</button>
+          </div>
+          <span class="ramc" id="ramc">RAM:0/7</span>
+        </div>
+        <div id="hcards"></div>
+      </div>
+      <div id="abar">
+        <span class="plabel" id="plbl">DRAW_PHASE</span>
+        <button class="btn primary" id="bdraw" onclick="doDraw()">[ DRAW ]</button>
+        <button class="btn warning" id="bcomp" onclick="doComp()" style="display:none">[ COMPILE ]</button>
+        <button class="btn danger" id="bend" onclick="endTurn()" style="display:none">[ END TURN ]</button>
+        <button class="btn purple" id="bint" onclick="doInt()" style="display:none">[ INTERRUPT ]</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="mt">GAME OVER</h2>
+    <p id="mm">...</p>
+    <button class="btn primary" onclick="restart()">[ MAIN LAGI ]</button>
+    <button class="btn gray" onclick="document.getElementById('modal').classList.remove('show');go('menu')">[ MENU ]</button>
+  </div>
+</div>
+
+<script>
+// ===== SCREEN =====
+function go(n){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+n).classList.add('active')}
+
+// ===== MATRIX =====
+(()=>{
+  const c=document.getElementById('matrix-canvas');
+  const x=c.getContext('2d');
+  let co,dr;const ch='01ABCDEF><{}();=+#@!?';
+  function r(){c.width=window.innerWidth;c.height=window.innerHeight;co=Math.floor(c.width/16);dr=Array(co).fill(1)}
+  r();window.addEventListener('resize',r);
+  setInterval(()=>{
+    x.fillStyle='rgba(10,10,15,0.05)';x.fillRect(0,0,c.width,c.height);
+    x.fillStyle='#00ff8820';x.font='13px Share Tech Mono';
+    dr.forEach((y,i)=>{const s=ch[Math.floor(Math.random()*ch.length)];x.fillText(s,i*16,y*16);if(y*16>c.height&&Math.random()>0.975)dr[i]=0;dr[i]++});
+  },55);
+})();
+
+// ===== GUIDE NAV =====
+function showG(id,btn){
+  document.querySelectorAll('.gsec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.gnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');btn.classList.add('active');
+}
+
+// ===== TUTORIAL DATA =====
+const TSTEPS=[
+  {t:"SELAMAT DATANG, HACKER",h:"Kamu adalah hacker yang harus membobol sistem musuh menggunakan kartu kode.",b:`<p>Code-Breaker adalah game kartu strategi di mana kamu menyusun <strong style="color:var(--text)">baris kode</strong> dari kartu untuk menyerang lawan.</p><p>Tidak seperti game kartu biasa — kartu harus disusun dalam <strong style="color:var(--cmd)">urutan sintaks yang benar</strong>, lalu di-<strong style="color:var(--action)">compile</strong> sebelum efeknya aktif.</p><div class="sdemo"><div class="dlbl">TUJUAN PERMAINAN:</div><p style="font-size:12px;color:var(--dim);margin:0">Kurangi <span style="color:var(--green)">INTEGRITY (HP)</span> lawan: <strong>100 → 0</strong><br>atau habiskan isi <span style="color:var(--cond)">DECK</span> lawan.</p></div><div class="tip-box">Setiap pemain mulai dengan Integrity 100 dan 5 kartu di tangan.</div>`},
+  {t:"MENGENAL JENIS KARTU",h:"Ada 4 jenis kartu dengan peran berbeda, masing-masing punya warna khas.",b:`<p>Kenali 4 jenis kartu:</p><div class="sdemo"><div class="srow"><span class="tag cmd">COMMAND</span><span style="font-size:11px;color:var(--dim);margin-left:8px">🟡 Kuning — Kepala program. WAJIB. Contoh: IF, WHILE</span></div><div class="srow" style="margin-top:8px"><span class="tag cond">CONDITION</span><span style="font-size:11px;color:var(--dim);margin-left:8px">🔵 Biru — Opsional, boost power. Contoh: TRUE, VALUE&gt;5</span></div><div class="srow" style="margin-top:8px"><span class="tag act">ACTION</span><span style="font-size:11px;color:var(--dim);margin-left:8px">🔴 Merah — Efek utama. WAJIB. Contoh: ATTACK, ENCRYPT</span></div><div class="srow" style="margin-top:8px"><span class="tag int">INTERRUPT</span><span style="font-size:11px;color:var(--dim);margin-left:8px">🟣 Ungu — Instan. Tidak disusun. Contoh: NULL_PTR</span></div></div><div class="tip-box">Hover kartu saat bermain untuk melihat deskripsi lengkapnya.</div><div class="warn-box">Kartu INTERRUPT tidak bisa diletakkan di baris kode biasa.</div>`},
+  {t:"SINTAKS KODE — URUTAN WAJIB",h:"Inti game. Susun kartu urutan benar, atau programmu CRASH!",b:`<p>Program harus mengikuti urutan:</p><div class="sdemo"><div class="dlbl">VALID SYNTAX:</div><div class="srow"><span class="tag cmd">① CMD</span><span class="arrow">→</span><span class="tag cond">[② COND?]</span><span class="arrow">→</span><span class="tag act">③ ACTION</span><span class="arrow">→</span><span class="tag good">✓ VALID</span></div></div><h4 style="color:var(--text);font-size:12px;margin:12px 0 6px">Contoh Valid:</h4><div class="sdemo"><div class="srow"><span class="tag cmd">IF</span><span class="arrow">+</span><span class="tag cond">TRUE</span><span class="arrow">+</span><span class="tag act">ATTACK</span><span class="arrow">=</span><span style="color:var(--green);font-size:11px">15+5=20 dmg ✓</span></div><div class="srow" style="margin-top:4px"><span class="tag cmd">EXEC</span><span class="arrow">+</span><span class="tag act">ENCRYPT</span><span class="arrow">=</span><span style="color:var(--green);font-size:11px">+10 INT heal ✓</span></div></div><h4 style="color:var(--red);font-size:12px;margin:10px 0 6px">Contoh CRASH:</h4><div class="sdemo"><div class="srow"><span class="tag act">ATTACK</span><span class="arrow">+</span><span class="tag cmd">IF</span><span class="arrow">=</span><span style="color:var(--red);font-size:11px">CRASH! ✗</span></div><div class="srow" style="margin-top:4px"><span class="tag cond">TRUE</span><span class="arrow">+</span><span class="tag act">ATTACK</span><span class="arrow">=</span><span style="color:var(--red);font-size:11px">CRASH! No CMD ✗</span></div></div>`},
+  {t:"FASE 1 — DRAW PHASE",h:"Setiap giliran dimulai dengan mengambil kartu dari Deck.",b:`<p>Tekan tombol <span class="tag good">[ DRAW ]</span> untuk mengambil <strong style="color:var(--cmd)">2 kartu</strong> dari Deck setiap giliran.</p><div class="sdemo"><div class="dlbl">ATURAN DRAW:</div><ul style="list-style:none;margin:0"><li style="font-size:11px;color:var(--dim);padding:2px 0">◆ Selalu ambil tepat 2 kartu per giliran</li><li style="font-size:11px;color:var(--dim);padding:2px 0">◆ Batas tangan: <strong style="color:var(--cmd)">7 kartu (RAM Limit)</strong></li><li style="font-size:11px;color:var(--dim);padding:2px 0">◆ Tangan penuh → kartu draw langsung ke Trash</li><li style="font-size:11px;color:var(--dim);padding:2px 0">◆ Deck habis → Trash dikocok jadi Deck baru</li></ul></div><div class="tip-box">Pantau RAM counter di area tangan. Jika 6-7, pertimbangkan memainkan kartu lebih banyak.</div>`},
+  {t:"FASE 2 — CODING PHASE",h:"Susun kode! Letakkan kartu ke baris program secara strategis.",b:`<p>Letakkan kartu ke salah satu dari <strong style="color:var(--green)">3 baris kode (LINE 1-3)</strong>.</p><div class="sdemo"><div class="dlbl">CARA LETAKKAN KARTU:</div><ul style="list-style:none;margin:0"><li style="font-size:11px;color:var(--dim);padding:2px 0">① Klik kartu di tangan (kartu naik = terpilih)</li><li style="font-size:11px;color:var(--dim);padding:2px 0">② Klik tombol <strong style="color:var(--green)">L1 / L2 / L3</strong> untuk pilih baris</li><li style="font-size:11px;color:var(--dim);padding:2px 0">③ Atau <strong style="color:var(--green)">drag &amp; drop</strong> kartu ke baris langsung</li></ul></div><div class="warn-box">Kartu yang diletakkan berstatus STAGING — lawan tidak tahu isinya!</div><div class="tip-box">Kamu bisa melanjutkan baris PENDING dari giliran sebelumnya.</div>`},
+  {t:"FASE 3 — COMPILE PHASE",h:"Momen kritis! Program dikompilasi — berhasil atau CRASH?",b:`<p>Tekan tombol <span class="tag" style="color:var(--action);border-color:var(--action)">[ COMPILE ]</span> untuk mengeksekusi program yang di-staging giliran ini.</p><div class="sdemo"><div class="dlbl">HASIL COMPILE:</div><div style="margin:4px 0"><span class="tag good">✓ EXECUTED</span> <span style="font-size:11px;color:var(--dim)"> — Urutan benar. Efek berjalan!</span></div><div style="margin:4px 0"><span class="tag bad">✗ CRASH</span> <span style="font-size:11px;color:var(--dim)"> — Syntax error. Kartu → Trash.</span></div><div style="margin:4px 0"><span class="tag cmd">⌛ PENDING</span> <span style="font-size:11px;color:var(--dim)"> — Belum ada ACTION. Tersimpan.</span></div></div><div class="sdemo" style="margin-top:8px"><div class="dlbl">CONTOH EKSEKUSI:</div><div class="srow"><span class="tag cmd">WHILE</span><span class="arrow">+</span><span class="tag cond">TRUE(5)</span><span class="arrow">+</span><span class="tag act">ATTACK(15)</span><span class="arrow">=</span><span style="color:var(--red)">(15+5)×1.5 = 30 dmg!</span></div></div><div class="tip-box">PENDING tidak dibuang — lengkapi ACTION-nya di giliran berikutnya.</div>`},
+  {t:"FASE 4 — INTERACTION PHASE",h:"Gunakan Interrupt untuk mengganggu lawan atau melindungi diri!",b:`<p>Setelah Compile, gunakan <span class="tag int">INTERRUPT</span> cards via tombol <span style="color:var(--interrupt)">[ INTERRUPT ]</span>.</p><div class="sdemo"><div class="dlbl">INTERRUPT CARDS:</div><ul style="list-style:none;margin:0"><li style="font-size:11px;color:var(--dim);padding:2px 0">🟣 <span style="color:var(--interrupt)">NULL_PTR</span> — Crash paksa 1 program lawan</li><li style="font-size:11px;color:var(--dim);padding:2px 0">🟣 <span style="color:var(--interrupt)">BACKDOOR</span> — Curi kartu dari deck lawan</li><li style="font-size:11px;color:var(--dim);padding:2px 0">🟣 <span style="color:var(--interrupt)">LOG_OUT</span> — Buang kartu teratas deck lawan</li><li style="font-size:11px;color:var(--dim);padding:2px 0">🟣 <span style="color:var(--interrupt)">PATCH</span> — Perbaiki syntax error barismu</li></ul></div><div class="tip-box">Simpan NULL_PTR untuk momen kritis — saat lawan hendak mengeksekusi EXPLOIT!</div>`},
+  {t:"ENEMY AI — CARA KERJA LAWAN",h:"Lawan adalah AI yang juga menyusun program. Waspadai baris kode mereka!",b:`<p>Enemy AI akan bermain setelah giliranmu. Mereka mengikuti aturan yang sama.</p><div class="sdemo"><div class="dlbl">AREA LAWAN (bagian ATAS layar):</div><ul style="list-style:none;margin:0"><li style="font-size:11px;color:var(--dim);padding:2px 0">◆ Baris lawan tampilkan <span class="mc hidden" style="font-size:9px">????</span> saat staging</li><li style="font-size:11px;color:var(--dim);padding:2px 0">◆ Pantau berapa baris yang mereka aktifkan!</li><li style="font-size:11px;color:var(--dim);padding:2px 0">◆ Lawan juga bisa memainkan interrupt di giliranmu</li></ul></div><div class="warn-box">Jika lawan punya 3 baris staging — bersiaplah atau keluarkan NULL_PTR!</div><div class="tip-box">Pantau LOG di tengah layar untuk melihat aksi lawan secara real-time.</div>`},
+  {t:"TIPS STRATEGI DASAR",h:"Beberapa strategi penting untuk menang di Code-Breaker!",b:`<div class="hl-box"><div class="hlt">DO's ✓</div><ul><li>CMD dulu, lalu COND (opsional), lalu ACTION</li><li>SUDO untuk +5 amplifikasi power</li><li>WHILE + LOOP!=0 = multiplier ×1.5 yang sangat kuat</li><li>Manfaatkan PENDING — lengkapi program besar bertahap</li><li>Simpan NULL_PTR untuk momen kritis</li></ul></div><div class="sdemo"><div class="dlbl">COMBO TERKUAT:</div><div class="srow"><span class="tag cmd">WHILE</span><span class="arrow">+</span><span class="tag cond">LOOP!=0(7)</span><span class="arrow">+</span><span class="tag act">ATTACK(15)</span><span class="arrow">=</span><span style="color:var(--red)">(15+7)×1.5 = 33 dmg!</span></div></div><div class="warn-box">EXPLOIT butuh 2 COND sekaligus! Rencanakan dengan baik.</div>`},
+  {t:"CARA BERMAIN — RINGKASAN",h:"Recap semua yang perlu kamu tahu sebelum terjun langsung!",b:`<div class="sdemo"><div class="dlbl">FLOW GILIRAN:</div><div class="srow"><span class="tag cmd">DRAW</span><span class="arrow">→</span><span class="tag act">CODING</span><span class="arrow">→</span><span class="tag good">COMPILE</span><span class="arrow">→</span><span class="tag int">INTERACT</span><span class="arrow">→</span><span style="font-size:11px;color:var(--dim)">END</span></div></div><div class="hl-box"><div class="hlt">CHECKLIST SEBELUM BERMAIN:</div><ul><li>Sintaks: CMD → (COND) → ACTION</li><li>Program aktif saat COMPILE, bukan saat diletakkan</li><li>Max 3 program aktif sekaligus</li><li>RAM limit 7 kartu di tangan</li><li>Interrupt via tombol [ INTERRUPT ] di Interaction Phase</li><li>Menang: HP lawan = 0, atau deck lawan habis</li></ul></div>`},
+  {t:"SIAP BERMAIN!",h:"Kamu sudah siap menjadi hacker sejati. Selamat berjuang!",b:`<div class="sdemo" style="text-align:center;padding:20px"><div style="font-family:'VT323';font-size:32px;color:var(--green);text-shadow:0 0 12px var(--green);letter-spacing:4px">GOOD LUCK, HACKER</div><div style="font-size:10px;color:var(--dim);margin-top:6px">// initializing breach protocol...</div><div style="font-size:10px;color:var(--dim);margin-top:2px">// loading card database...</div><div style="font-size:10px;color:var(--green);margin-top:2px">// ready.</div></div><p>Jika butuh referensi saat bermain, buka <span class="tag" style="color:var(--cond);border-color:var(--cond)">GUIDE</span> dari menu untuk daftar lengkap kartu &amp; aturan.</p><div class="tip-box">Tekan tombol [ MAIN SEKARANG ] di bawah untuk langsung mulai!</div>`}
+];
+
+let tIdx=0;
+function initTut(){tIdx=0;renderTut()}
+function renderTut(){
+  const tot=TSTEPS.length;
+  document.getElementById('tprog').style.width=((tIdx+1)/tot*100)+'%';
+  document.getElementById('tlbl').textContent=`${tIdx+1} / ${tot}`;
+  document.getElementById('tsb').innerHTML=TSTEPS.map((s,i)=>`<div class="tsi ${i<tIdx?'done':i===tIdx?'current':'locked'}">${i+1}. ${s.t}</div>`).join('');
+  document.getElementById('tslides').innerHTML=TSTEPS.map((s,i)=>`<div class="tut-slide ${i===tIdx?'active':''}" id="ts${i}"><h3>${s.t}</h3><div class="hook">${s.h}</div>${s.b}</div>`).join('');
+  const isLast=tIdx===tot-1;
+  document.getElementById('tprev').classList.toggle('disabled',tIdx===0);
+  document.getElementById('tnext').style.display=isLast?'none':'';
+  document.getElementById('tplay').style.display=isLast?'':'none';
+}
+function tNav(d){
+  const ni=tIdx+d;if(ni<0||ni>=TSTEPS.length)return;
+  const curr=document.getElementById(`ts${tIdx}`);
+  if(curr){curr.classList.add('exit');curr.classList.remove('active')}
+  tIdx=ni;renderTut();
+}
+
+// ===== CARD DEFS =====
+const CD={
+  IF:{id:'IF',type:'cmd',name:'IF',power:0,desc:'Eksekusi jika kondisi terpenuhi.',effect:'boost_cond'},
+  WHILE:{id:'WHILE',type:'cmd',name:'WHILE',power:0,desc:'Ulangi aksi ×1.5. Sinergi LOOP!=0.',effect:'repeat'},
+  EXEC:{id:'EXEC',type:'cmd',name:'EXEC',power:0,desc:'Direct execute. Tidak butuh condition.',effect:'direct'},
+  SUDO:{id:'SUDO',type:'cmd',name:'SUDO',power:0,desc:'Elevasi privilege. +5 bonus power.',effect:'amplify'},
+  FORK:{id:'FORK',type:'cmd',name:'FORK',power:0,desc:'Eksekusi terbagi.',effect:'fork'},
+  TRUE:{id:'TRUE',type:'cond',name:'TRUE',power:5,desc:'Selalu valid. +5 power.',effect:'flat_boost'},
+  GT5:{id:'GT5',type:'cond',name:'VALUE>5',power:8,desc:'Lawan <50 INT → +8 power.',effect:'gt5'},
+  DEFINED:{id:'DEFINED',type:'cond',name:'DEFINED',power:6,desc:'2+ program aktif → +6 power.',effect:'multi'},
+  OVERFLOW:{id:'OVERFLOW',type:'cond',name:'OVERFLOW',power:10,desc:'Tangan ≥5 kartu → +10 power.',effect:'overflow'},
+  LOOP_C:{id:'LOOP_C',type:'cond',name:'LOOP!=0',power:7,desc:'Ada WHILE di meja → +7 power.',effect:'loop_cond'},
+  ATTACK:{id:'ATTACK',type:'act',name:'ATTACK',power:15,desc:'-15(+bonus) INT lawan.',effect:'damage'},
+  ENCRYPT:{id:'ENCRYPT',type:'act',name:'ENCRYPT',power:10,desc:'+10 INT untuk dirimu.',effect:'heal'},
+  DDOS:{id:'DDOS',type:'act',name:'DDoS',power:12,desc:'-12 dmg + crash 1 baris lawan.',effect:'ddos'},
+  INJECT:{id:'INJECT',type:'act',name:'INJECT',power:8,desc:'-8 dmg + draw 1 kartu.',effect:'draw_dmg'},
+  FIREWALL:{id:'FIREWALL',type:'act',name:'FIREWALL',power:0,desc:'Tangkal serangan berikutnya.',effect:'shield'},
+  EXPLOIT:{id:'EXPLOIT',type:'act',name:'EXPLOIT',power:20,desc:'-20 dmg. Butuh 2+ COND!',effect:'big_dmg'},
+  NULLPTR:{id:'NULLPTR',type:'int',name:'NULL_PTR',power:0,desc:'[INSTAN] Crash paksa 1 program lawan.',effect:'crash_line'},
+  BACKDOOR:{id:'BACKDOOR',type:'int',name:'BACKDOOR',power:0,desc:'[INSTAN] Curi 1 kartu dari deck lawan.',effect:'steal'},
+  LOGOUT:{id:'LOGOUT',type:'int',name:'LOG_OUT',power:0,desc:'[INSTAN] Buang kartu teratas deck lawan.',effect:'mill'},
+  PATCH:{id:'PATCH',type:'int',name:'PATCH',power:0,desc:'[INSTAN] Perbaiki 1 Syntax Error barismu.',effect:'fix'},
+  ANTIVIRUS:{id:'ANTIVIRUS',type:'int',name:'ANTIVIRUS',power:0,desc:'[INSTAN] Batalkan interrupt lawan.',effect:'counter'},
+};
+const mk=id=>({...CD[id],uid:Math.random().toString(36).slice(2)});
+const DECK=['IF','IF','IF','WHILE','WHILE','EXEC','EXEC','SUDO','FORK','TRUE','TRUE','GT5','GT5','DEFINED','OVERFLOW','LOOP_C','ATTACK','ATTACK','ATTACK','ENCRYPT','ENCRYPT','DDOS','DDOS','INJECT','INJECT','FIREWALL','EXPLOIT','NULLPTR','NULLPTR','BACKDOOR','LOGOUT','PATCH','ANTIVIRUS'];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+let G={};
+function startGame(){
+  G={phase:'draw',turn:0,
+    P:{hp:100,mhp:100,deck:shuf([...DECK].map(mk)),hand:[],trash:[],lines:[[],[],[]],ls:['e','e','e'],shield:false},
+    E:{hp:100,mhp:100,deck:shuf([...DECK].map(mk)),hand:[],trash:[],lines:[[],[],[]],ls:['e','e','e'],shield:false},
+    sel:0,sc:null,go:false,pl:[]
+  };
+  for(let i=0;i<5;i++)dc(G.P);
+  for(let i=0;i<5;i++)dc(G.E);
+  document.getElementById('larea').innerHTML='';
+  lg('// System initialized. DRAW 2 cards to begin.','info');
+  ra();
+}
+function dc(p,n=1){
+  for(let i=0;i<n;i++){
+    if(p.deck.length===0){if(p.trash.length===0){p.hp=Math.max(0,p.hp-5);lg('// Deck empty — -5 INT!','error');return}p.deck=shuf([...p.trash]);p.trash=[]}
+    if(p.hand.length>=7){p.trash.push(p.deck.pop());lg('// RAM overflow — kartu dibuang','warn');return}
+    p.hand.push(p.deck.pop());
+  }
+}
+function vl(cards){
+  if(!cards||!cards.length)return'e';
+  const t=cards.map(c=>c.type);
+  if(!t.includes('cmd'))return'invalid';
+  if(!t.includes('act'))return'pending';
+  if(t.lastIndexOf('cmd')>t.indexOf('act'))return'invalid';
+  if(t.includes('int'))return'invalid';
+  return'valid';
+}
+function exl(line,att,def){
+  const cmds=line.filter(c=>c.type==='cmd'),conds=line.filter(c=>c.type==='cond'),acts=line.filter(c=>c.type==='act');
+  let base=acts.reduce((s,c)=>s+c.power,0),bon=0,mult=1;
+  conds.forEach(c=>{switch(c.effect){case'flat_boost':bon+=c.power;break;case'gt5':if(def.hp<50)bon+=c.power;break;case'multi':if(att.lines.filter(l=>l.length>0).length>=2)bon+=c.power;break;case'overflow':if(att.hand.length>=5)bon+=c.power;break;case'loop_cond':if(att.lines.some(l=>l.some(c=>c.id==='WHILE')))bon+=c.power;break;}});
+  cmds.forEach(c=>{if(c.effect==='amplify')bon+=5;if(c.effect==='repeat')mult=1.5});
+  const tot=Math.floor((base+bon)*mult);
+  acts.forEach(act=>{
+    switch(act.effect){
+      case'damage':if(def.shield){def.shield=false;lg(`// FIREWALL blokir ${tot} dmg!`,'warn')}else{def.hp=Math.max(0,def.hp-tot);lg(`// ATTACK → -${tot} INT`,'success')}break;
+      case'heal':att.hp=Math.min(att.mhp,att.hp+10);lg('// ENCRYPT → +10 INT','success');break;
+      case'ddos':if(def.shield){def.shield=false;lg('// FIREWALL blokir DDoS!','warn')}else{def.hp=Math.max(0,def.hp-(12+bon));const t=def.lines.findIndex(l=>l.length>0);if(t>=0){def.lines[t]=[];def.ls[t]='e'}lg(`// DDoS → -${12+bon} INT + line crashed`,'success')}break;
+      case'draw_dmg':def.hp=Math.max(0,def.hp-(8+bon));dc(att,1);lg(`// INJECT → -${8+bon} INT + draw 1`,'success');break;
+      case'shield':att.shield=true;lg('// FIREWALL aktif — serangan berikutnya ditangkal','success');break;
+      case'big_dmg':if(conds.length>=2){def.hp=Math.max(0,def.hp-20);lg('// EXPLOIT → -20 INT','success')}else lg('// EXPLOIT GAGAL — butuh 2+ COND!','error');break;
+    }
+  });
+}
+
+// ===== RENDER =====
+function ra(){rh();rpl();rel();rs();rpui()}
+function rs(){
+  const ph=G.P.hp,eh=G.E.hp;
+  document.getElementById('php').textContent=ph;document.getElementById('ehp').textContent=eh;
+  document.getElementById('phpb').style.width=(ph/100*100)+'%';document.getElementById('ehpb').style.width=(eh/100*100)+'%';
+  document.getElementById('pdc').textContent=G.P.deck.length;document.getElementById('edc').textContent=G.E.deck.length;
+  document.getElementById('ptc').textContent=G.P.trash.length;document.getElementById('etc').textContent=G.E.trash.length;
+  const r=G.P.hand.length,rc=document.getElementById('ramc');
+  rc.textContent=`RAM:${r}/7`;rc.className='ramc'+(r>=6?' warn':'');
+}
+function rh(){
+  const a=document.getElementById('hcards');a.innerHTML='';
+  G.P.hand.forEach((card,idx)=>{
+    const el=document.createElement('div');
+    el.className=`card ${card.type}${G.sc===idx?' selected':''}`;el.draggable=true;
+    el.innerHTML=`<div class="cbits">◆◆◆</div><div class="ctb">[${card.type.toUpperCase()}]</div><div class="cname">${card.name}</div><div class="cdiv"></div><div class="cdesc">${card.desc}</div>${card.power>0?`<div class="cpow">PWR:${card.power}</div>`:''}`;
+    el.onclick=()=>selC(idx);el.ondragstart=e=>e.dataTransfer.setData('ci',idx);
+    el.onmouseenter=e=>tt(e,card);el.onmouseleave=()=>ht();
+    a.appendChild(el);
+  });
+}
+function rpl(){
+  for(let i=0;i<3;i++){
+    const line=G.P.lines[i],st=G.P.ls[i];
+    const el=document.getElementById(`pl${i}`);
+    el.className=`cline${st!=='e'&&st!=='empty'?' '+st:''}`;
+    const lc=el.querySelector('.lcards'),hint=el.querySelector('.elh');
+    lc.innerHTML='';if(hint)hint.style.display=line.length===0?'block':'none';
+    line.forEach(card=>{const mc=document.createElement('span');const p=G.pl.includes(i);mc.className=`mc ${p?'hidden':card.type}`;mc.textContent=p?'????':card.name;lc.appendChild(mc)});
+    const lb={'e':'L'+(i+1),'empty':'L'+(i+1),pending:'STAGING...',valid:'READY',invalid:'ERR'};
+    el.querySelector('.llabel').textContent=lb[st]||'L'+(i+1);
+  }
+  document.querySelectorAll('.lbtn').forEach((b,i)=>b.classList.toggle('active',i===G.sel));
+}
+function rel(){
+  for(let i=0;i<3;i++){
+    const line=G.E.lines[i],st=G.E.ls[i];
+    const el=document.getElementById(`el${i}`);
+    el.className=`cline${st!=='e'&&st!=='empty'?' '+st:''}`;
+    const lc=el.querySelector('.lcards');lc.innerHTML='';
+    line.forEach(card=>{const mc=document.createElement('span');mc.className=`mc ${st==='pending'?'hidden':card.type}`;mc.textContent=st==='pending'?'????':card.name;lc.appendChild(mc)});
+    el.querySelector('.llabel').textContent=st==='pending'?'STAGING...':'L'+(i+1);
+  }
+}
+function rpui(){
+  const phase=G.phase;
+  const pn={draw:'DRAW_PHASE',coding:'CODING_PHASE',compile:'COMPILE_PHASE',interaction:'INTERACT_PHASE',enemy:'ENEMY_TURN'};
+  document.getElementById('plbl').textContent=pn[phase]||phase;
+  document.getElementById('pdisplay').textContent=pn[phase]||phase;
+  document.getElementById('bdraw').style.display=phase==='draw'?'':'none';
+  document.getElementById('bcomp').style.display=phase==='coding'?'':'none';
+  document.getElementById('bend').style.display=(phase==='interaction'||(phase==='coding'&&G.pl.length===0))?'':'none';
+  document.getElementById('bint').style.display=phase==='interaction'?'':'none';
+  const hi=G.P.hand.some(c=>c.type==='int');
+  document.getElementById('bint').classList.toggle('disabled',!hi);
+  const ti=document.getElementById('ti');
+  ti.className=phase==='enemy'?'et':'pt';
+  ti.textContent=phase==='enemy'?'ENEMY TURN':'YOUR TURN';
+}
+
+// ===== ACTIONS =====
+function selC(idx){
+  if(G.phase!=='coding'&&G.P.hand[idx].type!=='int'){lg('// Hanya bisa letakkan kartu saat CODING phase','error');return}
+  G.sc=G.sc===idx?null:idx;rh();
+}
+function selL(idx){G.sel=idx;if(G.sc!==null)pc(G.sc,idx);else rpl()}
+function pc(ci,li){
+  if(G.phase!=='coding'){lg('// Letakkan kartu saat CODING phase','error');return}
+  const line=G.P.lines[li];if(line.length>=4){lg('// Baris penuh','error');return}
+  const card=G.P.hand.splice(ci,1)[0];
+  if(!G.pl.includes(li))G.pl.push(li);
+  line.push(card);G.P.ls[li]='pending';G.sc=null;
+  lg(`// ${card.name} → LINE_${li+1}`,'warn');ra();
+}
+function dov(e,li){e.preventDefault();document.getElementById(`pl${li}`).classList.add('drop-target')}
+function dop(e,li){e.preventDefault();document.getElementById(`pl${li}`).classList.remove('drop-target');const idx=parseInt(e.dataTransfer.getData('ci'));if(!isNaN(idx))pc(idx,li)}
+function doDraw(){if(G.phase==='draw'){dc(G.P,2);G.phase='coding';lg('// Drew 2 cards. Susun program...','info');ra()}}
+function doComp(){
+  if(G.phase!=='coding')return;G.phase='compile';
+  G.pl.forEach(li=>{
+    const line=G.P.lines[li],st=vl(line);
+    if(st==='valid'){const el=document.getElementById(`pl${li}`);el.classList.add('ea');setTimeout(()=>el.classList.remove('ea'),700);lg(`// LINE_${li+1}: COMPILED → executing...`,'success');exl(line,G.P,G.E);G.P.lines[li]=[];G.P.ls[li]='e'}
+    else if(st==='pending'){G.P.ls[li]='pending';lg(`// LINE_${li+1}: incomplete — simpan ke turn berikutnya`,'warn')}
+    else{const el=document.getElementById(`pl${li}`);el.classList.add('ca');setTimeout(()=>el.classList.remove('ca'),700);lg(`// LINE_${li+1}: SYNTAX ERROR → CRASH`,'error');G.P.trash.push(...line);G.P.lines[li]=[];G.P.ls[li]='e'}
+  });
+  G.pl=[];cgov();G.phase='interaction';ra();
+}
+function doInt(){
+  const ii=G.P.hand.findIndex(c=>c.type==='int');if(ii<0){lg('// Tidak ada interrupt card','error');return}
+  const card=G.P.hand.splice(ii,1)[0];G.P.trash.push(card);lg(`// [INTERRUPT] ${card.name}!`,'interrupt');
+  switch(card.effect){
+    case'crash_line':{const t=G.E.lines.findIndex(l=>l.length>0);if(t>=0){G.E.trash.push(...G.E.lines[t]);G.E.lines[t]=[];G.E.ls[t]='e';lg(`// NULL_PTR crash enemy LINE_${t+1}`,'interrupt')}else lg('// Tidak ada baris lawan','warn');break}
+    case'steal':{if(G.E.deck.length>0){const s=G.E.deck.pop();if(G.P.hand.length<7)G.P.hand.push(s);else G.P.trash.push(s);lg(`// BACKDOOR: curi ${s.name}`,'interrupt')}break}
+    case'mill':{if(G.E.deck.length>0){const m=G.E.deck.pop();G.E.trash.push(m);lg(`// LOG_OUT: buang ${m.name}`,'interrupt')}break}
+    case'fix':{const pi=G.P.ls.findIndex(s=>s==='invalid');if(pi>=0){G.P.ls[pi]='pending';lg(`// PATCH di LINE_${pi+1}`,'interrupt')}else lg('// Tidak ada syntax error','warn');break}
+  }
+  cgov();ra();
+}
+function endTurn(){
+  if(G.phase==='coding'&&G.pl.length>0){doComp();return}
+  if(G.phase!=='interaction'&&G.phase!=='coding')return;
+  if(G.go){sm('GAME OVER','Permainan sudah selesai.');return}
+  G.phase='enemy';lg('// Giliran → ENEMY_AI...','info');ra();
+  setTimeout(eturn,800);
+}
+function eturn(){
+  if(G.go){G.phase='draw';ra();return}
+  lg('// [ENEMY] Drawing...','error');dc(G.E,2);
+  setTimeout(()=>{
+    const cmds=G.E.hand.filter(c=>c.type==='cmd'),acts=G.E.hand.filter(c=>c.type==='act'),conds=G.E.hand.filter(c=>c.type==='cond'),ints=G.E.hand.filter(c=>c.type==='int');
+    const eli=G.E.lines.findIndex(l=>l.length===0);
+    if(eli>=0&&cmds.length>0&&acts.length>0){
+      const cmd=cmds[0],act=acts[0];
+      G.E.hand.splice(G.E.hand.indexOf(cmd),1);G.E.hand.splice(G.E.hand.indexOf(act),1);
+      G.E.lines[eli]=[cmd];
+      if(conds.length>0){const cd=conds[0];G.E.hand.splice(G.E.hand.indexOf(cd),1);G.E.lines[eli].push(cd)}
+      G.E.lines[eli].push(act);G.E.ls[eli]='pending';lg(`// [ENEMY] Staging LINE_${eli+1}...`,'error');
+    }
+    if(ints.length>0&&Math.random()>0.5){
+      const card=ints[0];G.E.hand.splice(G.E.hand.indexOf(card),1);G.E.trash.push(card);lg(`// [ENEMY] ${card.name}!`,'interrupt');
+      if(card.effect==='crash_line'){const t=G.P.lines.findIndex(l=>l.length>0);if(t>=0){G.P.trash.push(...G.P.lines[t]);G.P.lines[t]=[];G.P.ls[t]='e';G.pl=G.pl.filter(i=>i!==t);lg(`// [ENEMY] NULL_PTR crash LINE_${t+1} milikmu!`,'interrupt')}}
+    }
+    setTimeout(()=>{
+      G.E.lines.forEach((line,idx)=>{
+        if(G.E.ls[idx]==='pending'){
+          const s=vl(line);
+          if(s==='valid'){lg('// [ENEMY] Program executing!','error');exl(line,G.E,G.P);G.E.lines[idx]=[];G.E.ls[idx]='e'}
+          else{G.E.trash.push(...line);G.E.lines[idx]=[];G.E.ls[idx]='e';lg('// [ENEMY] Syntax Error — CRASH','info')}
+        }
+      });
+      cgov();while(G.E.hand.length>7)G.E.trash.push(G.E.hand.pop());
+      if(G.go)return;
+      G.turn++;G.phase='draw';lg(`// Turn ${G.turn+1} — GILIRANMU`,'info');ra();
+    },600);
+    ra();
+  },600);
+}
+function cgov(){
+  if(G.go)return;
+  if(G.P.hp<=0){G.go=true;setTimeout(()=>sm('INTEGRITY BREACH','Sistemmu telah dibobol.\nIntegrity = 0. Enemy AI menang.'),300)}
+  else if(G.E.hp<=0){G.go=true;setTimeout(()=>sm('SYSTEM PWNED','Target Integrity habis!\nKamu berhasil membobol sistem musuh.'),300)}
+}
+function sm(title,msg){document.getElementById('mt').textContent=title;document.getElementById('mm').textContent=msg;document.getElementById('modal').classList.add('show')}
+function restart(){document.getElementById('modal').classList.remove('show');startGame()}
+function lg(msg,type=''){
+  const a=document.getElementById('larea'),el=document.createElement('div');
+  el.className=`lentry ${type} si`;el.textContent=msg;
+  a.insertBefore(el,a.firstChild);while(a.children.length>25)a.removeChild(a.lastChild);
+}
+function tt(e,card){
+  const t=document.getElementById('tooltip');
+  const tc={cmd:'var(--cmd)',cond:'var(--cond)',act:'var(--action)',int:'var(--interrupt)'};
+  t.innerHTML=`<div class="tooltip-title" style="color:${tc[card.type]}">${card.name}</div><div style="font-size:9px;color:var(--dim)">[${card.type.toUpperCase()}]${card.power>0?' PWR:'+card.power:''}</div><div style="margin-top:4px;font-size:10px">${card.desc}</div>`;
+  t.style.left=(e.clientX+12)+'px';t.style.top=(e.clientY-10)+'px';t.classList.add('show');
+}
+function ht(){document.getElementById('tooltip').classList.remove('show')}
+</script>
+</body>
+</html>
